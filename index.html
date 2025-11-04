@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تقرير ثاندر — ٤ نوفمبر ٢٠٢٥ (نسخة ويب)</title>
+<style>
+  :root{--bg:#0b0b0f;--card:#14141b;--text:#f3f4f6;--muted:#a1a1aa;--border:#22232b;--btn:#0ea5e9}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+  .container{max-width:1080px;margin:24px auto;padding:0 16px}
+  .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+  .title{font-size:28px;font-weight:800}
+  .date-chip{padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:#a1a1aa}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin:12px 0}
+  .section-title{font-size:20px;margin:0 0 12px}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .pill{background:#1f2937;border:1px solid #2b2f3a;color:#e5e7eb;border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer}
+  .watchlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .wcard{background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:14px}
+  .whead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .ticker{background:#1f2937;border-radius:999px;padding:2px 10px;font-weight:800}
+  .name{color:#e5e7eb;font-weight:700}
+  .row{font-size:14px;margin:4px 0}
+  .thesis{color:#cbd5e1;margin-top:6px}
+  .btn{background:var(--btn);border:0;padding:10px 14px;border-radius:12px;color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+  .btn.secondary{background:#475569}
+  .grid{display:grid;gap:12px}
+  .two{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .calc{background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:14px}
+  label{display:block;font-size:12px;color:#a1a1aa;margin-bottom:4px}
+  input{width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff}
+  .table{width:100%;border-collapse:collapse}
+  .table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right}
+  .footer{text-align:center;color:#a1a1aa;padding:18px 6px;font-size:12px}
+  .sticky{position:sticky;top:0;z-index:5}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title">تقرير محفظة ثاندر + صفحات أسهم مع حاسبة تداول</div>
+    <div class="date-chip">٤ نوفمبر ٢٠٢٥</div>
+  </div>
+
+  <div class="card sticky">
+    <div class="section-title" style="margin-bottom:8px">التنقل بين الصفحات</div>
+    <div class="legend" id="nav">
+      <button class="pill" data-goto="HOME">قائمة المراقبة</button>
+      <button class="pill" data-goto="TMGH">TMGH</button>
+      <button class="pill" data-goto="EGAL">EGAL</button>
+      <button class="pill" data-goto="EALR">EALR</button>
+      <button class="pill" data-goto="ABUK">ABUK</button>
+      <button class="pill" data-goto="ETEL">ETEL</button>
+      <button class="pill" data-goto="EFIH">EFIH</button>
+      <button class="pill" data-goto="CALC">حاسبة مستقلة</button>
+    </div>
+  </div>
+
+  <section data-page="HOME" class="card">
+    <div class="section-title">أفضل أسهم للمراقبة</div>
+    <div class="legend">
+      <div class="pill">التزم بمنطقة الدخول</div>
+      <div class="pill">استخدم وقف الخسارة</div>
+      <div class="pill">قسّم التمويل على دفعات</div>
+    </div>
+    <div class="watchlist" id="watchlist"></div>
+  </section>
+
+  <section data-page="TMGH" class="card"></section>
+  <section data-page="EGAL" class="card"></section>
+  <section data-page="EALR" class="card"></section>
+  <section data-page="ABUK" class="card"></section>
+  <section data-page="ETEL" class="card"></section>
+  <section data-page="EFIH" class="card"></section>
+  <section data-page="CALC" class="card"></section>
+
+  <div class="footer">نسخة ويب قابلة للرفع على أي استضافة ثابتة (Netlify/GitHub Pages)</div>
+</div>
+
+<script>
+const data = [
+  {tkr:'TMGH', name:'طلعت مصطفى القابضة', bias:'نمو عقاري', zone:'٣٢–٣٤ ج.م', stop:30.5, t1:38, t2:42, entry:33, link:'https://www.mubasher.info/markets/EGX/stocks/TMGH', thesis:'مبيعات قوية وتدفقات نقدية مستقرة.'},
+  {tkr:'EGAL', name:'مصر للألومنيوم', bias:'دوري سلعي + توزيعات', zone:'٦٥–٦٩ ج.م', stop:62, t1:76, t2:82, entry:67, link:'https://www.mubasher.info/markets/EGX/stocks/EGAL', thesis:'تحسن أسعار الألومنيوم؛ توزيعات.'},
+  {tkr:'EALR', name:'العربية لاستصلاح الأراضي', bias:'زراعي/مشروعات', zone:'٣٥–٣٧ ج.م', stop:33.8, t1:41, t2:46, entry:36, link:'https://www.mubasher.info/markets/EGX/stocks/EALR', thesis:'دفعات مشروعات وبنية زراعية.'},
+  {tkr:'ABUK', name:'أبو قير للأسمدة', bias:'توزيعي دفاعي', zone:'٧٤–٧٨ ج.م', stop:71, t1:86, t2:92, entry:76, link:'https://www.mubasher.info/markets/EGX/stocks/ABUK', thesis:'عائد توزيعات قوي.'},
+  {tkr:'ETEL', name:'المصرية للاتصالات', bias:'قيمة + نمو اتصالات', zone:'٤٤–٤٧ ج.م', stop:42.5, t1:52, t2:57, entry:45.5, link:'https://www.mubasher.info/markets/EGX/stocks/ETEL', thesis:'نمو البيانات والكابلات.'},
+  {tkr:'EFIH', name:'إي إف جي القابضة', bias:'خدمات مالية', zone:'٢٤–٢٦ ج.م', stop:23, t1:29, t2:32, entry:25, link:'https://www.mubasher.info/markets/EGX/stocks/EFIH', thesis:'تنوع مصادر الدخل.'}
+];
+
+function money(n){ return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(n); }
+
+document.getElementById('watchlist').innerHTML = data.map(d => (
+  "<div class='wcard'>"+
+    "<div class='whead'><div class='ticker'>"+d.tkr+"</div><div class='name'>"+d.name+"</div></div>"+
+    "<div class='row'><span>التصنيف:</span> <b>"+d.bias+"</b></div>"+
+    "<div class='row'><span>منطقة الدخول:</span> <b>"+d.zone+"</b></div>"+
+    "<div class='row'><span>إيقاف الخسارة:</span> <b>"+d.stop+" ج.م</b></div>"+
+    "<div class='row'><span>الأهداف:</span> <b>"+d.t1+" ثم "+d.t2+" ج.م</b></div>"+
+    "<div class='row thesis'>"+d.thesis+"</div>"+
+  "</div>"
+)).join('');
+
+function stockPage(d){
+  return (
+  "<div class='section-title'>"+d.tkr+" — "+d.name+"</div>"+
+  "<div class='grid two'>"+
+    "<div class='calc'>"+
+      "<div class='row'><span>منطقة الدخول:</span> <b>"+d.zone+"</b></div>"+
+      "<a class='btn' href='"+d.link+"' target='_blank' rel='noopener'>فتح على مباشر</a>"+
+      "<div class='grid two' style='margin-top:10px'>"+
+        "<div><label>سعر الدخول</label><input id='e_"+d.tkr+"' type='number' step='0.01' value='"+d.entry+"'></div>"+
+        "<div><label>رأس المال (ج.م)</label><input id='cap_"+d.tkr+"' type='number' step='100' value='5000'></div>"+
+        "<div><label>نسبة المخاطرة %</label><input id='risk_"+d.tkr+"' type='number' step='0.5' value='1.5'></div>"+
+        "<div><label>وقف الخسارة</label><input id='s_"+d.tkr+"' type='number' step='0.01' value='"+d.stop+"'></div>"+
+        "<div><label>عمولة/رسوم % (إجمالي بيع+شراء)</label><input id='c_"+d.tkr+"' type='number' step='0.01' value='0.15'></div>"+
+        "<div><label>رسوم ثابتة (ج.م لكل عملية)</label><input id='f_"+d.tkr+"' type='number' step='1' value='0'></div>"+
+      "</div>"+
+      "<div style='margin-top:10px'><button class='btn' onclick=\"calc('"+d.tkr+"',"+d.t1+","+d.t2+")\">احسب الكمية والعائد</button> <a id='dl_"+d.tkr+"' class='btn secondary' href='#'>تصدير إلى Excel</a></div>"+
+      "<div id='out_"+d.tkr+"' class='row' style='margin-top:10px;color:#e5e7eb'></div>"+
+    "</div>"+
+    "<div class='calc'>"+
+      "<table class='table'><thead><tr><th class='muted'>البند</th><th>قيمة</th></tr></thead><tbody id='tbl_"+d.tkr+"'>"+
+        "<tr><td class='muted'>هدف ١</td><td>"+d.t1+" ج.م</td></tr>"+
+        "<tr><td class='muted'>هدف ٢</td><td>"+d.t2+" ج.م</td></tr>"+
+        "<tr><td class='muted'>وقف</td><td>"+d.stop+" ج.م</td></tr>"+
+      "</tbody></table>"+
+    "</div>"+
+  "</div>"
+  );
+}
+
+['TMGH','EGAL','EALR','ABUK','ETEL','EFIH'].forEach(id=>{
+  const d = data.find(x=>x.tkr===id); const sec = document.querySelector("section[data-page='"+id+"']");
+  if(d && sec) sec.innerHTML = stockPage(d);
+});
+
+const calcSec = document.querySelector("section[data-page='CALC']");
+calcSec.innerHTML = (
+  "<div class='section-title'>حاسبة تداول مستقلة</div>"+
+  "<div class='grid two'>"+
+    "<div class='calc'>"+
+      "<label>سعر الدخول</label><input id='e_CALC' type='number' step='0.01' value='10'>"+
+      "<label style='margin-top:8px'>رأس المال (ج.م)</label><input id='cap_CALC' type='number' step='100' value='5000'>"+
+      "<label style='margin-top:8px'>نسبة المخاطرة %</label><input id='risk_CALC' type='number' step='0.5' value='1.5'>"+
+      "<label style='margin-top:8px'>وقف الخسارة</label><input id='s_CALC' type='number' step='0.01' value='9.2'>"+
+      "<label style='margin-top:8px'>هدف ١</label><input id='t1_CALC' type='number' step='0.01' value='11.2'>"+
+      "<label style='margin-top:8px'>هدف ٢</label><input id='t2_CALC' type='number' step='0.01' value='12'>"+
+      "<label style='margin-top:8px'>عمولة/رسوم % (إجمالي بيع+شراء)</label><input id='c_CALC' type='number' step='0.01' value='0.15'>"+
+      "<label style='margin-top:8px'>رسوم ثابتة (ج.م لكل عملية)</label><input id='f_CALC' type='number' step='1' value='0'>"+
+      "<div style='margin-top:10px'><button class='btn' onclick=\"calc('CALC', parseFloat(t1_CALC.value), parseFloat(t2_CALC.value))\">احسب</button> <a id='dl_CALC' class='btn secondary' href='#'>تصدير إلى Excel</a></div>"+
+      "<div id='out_CALC' class='row' style='margin-top:10px;color:#e5e7eb'></div>"+
+    "</div>"+
+    "<div class='calc'><div class='muted'>أدخل معطياتك ثم اضغط احسب لعرض الكمية، قيمة المخاطرة، الربح الإجمالي والصافي بعد العمولات عند الهدفين، ونسبة العائد/المخاطرة.</div></div>"+
+  "</div>"
+);
+
+const pages = document.querySelectorAll('section[data-page]');
+function show(page){ pages.forEach(s=>{ s.style.display = (s.getAttribute('data-page')===page)?'block':'none'; }); location.hash = page; }
+document.getElementById('nav').addEventListener('click',e=>{ if(e.target.dataset.goto){ show(e.target.dataset.goto); }});
+show(location.hash.replace('#','')||'HOME');
+
+window.calc = function(tkr, t1, t2){
+  const e = parseFloat(document.getElementById('e_'+tkr).value);
+  const cap = parseFloat(document.getElementById('cap_'+tkr).value);
+  const riskPct = parseFloat(document.getElementById('risk_'+tkr).value)/100;
+  const s = parseFloat(document.getElementById('s_'+tkr).value);
+  const cPct = parseFloat(document.getElementById('c_'+tkr).value||'0')/100;
+  const fee = parseFloat(document.getElementById('f_'+tkr).value||'0');
+  if([e,cap,riskPct,s].some(x=>isNaN(x)||x<=0)){ alert('تحقق من القيم'); return; }
+  const riskAmount = cap * riskPct;
+  const riskPerShare = Math.max(e - s, 0.0001);
+  const qty = Math.floor(riskAmount / riskPerShare);
+  const buyNotional = qty * e;
+  const sell1 = qty * t1, sell2 = qty * t2;
+  const feesBuy = buyNotional * (cPct/2) + fee;
+  const feesSell1 = sell1 * (cPct/2) + fee;
+  const feesSell2 = sell2 * (cPct/2) + fee;
+  const gross1 = sell1 - buyNotional, gross2 = sell2 - buyNotional;
+  const net1 = gross1 - (feesBuy + feesSell1), net2 = gross2 - (feesBuy + feesSell2);
+  const rr1 = (t1 - e) / (e - s), rr2 = (t2 - e) / (e - s);
+  document.getElementById('out_'+tkr).innerHTML =
+    "الكمية المقترحة: <b>"+money(qty)+"</b> — تكلفة الشراء: <b>"+money(buyNotional)+"</b> ج.م — المخاطرة: <b>"+money(riskAmount)+"</b> ج.م<br>"+
+    "الربح <u>الصافي بعد العمولات</u>: هدف ١ = <b>"+money(net1)+"</b> ج.م | هدف ٢ = <b>"+money(net2)+"</b> ج.م — R:R ≈ "+rr1.toFixed(2)+" / "+rr2.toFixed(2);
+  const tbl = document.getElementById('tbl_'+tkr);
+  if(tbl){
+    tbl.innerHTML =
+      "<tr><td class='muted'>هدف ١ (Gross/Net)</td><td>"+money(t1)+" ج.م | إجمالي: "+money(gross1)+" | صافي: "+money(net1)+"</td></tr>"+
+      "<tr><td class='muted'>هدف ٢ (Gross/Net)</td><td>"+money(t2)+" ج.م | إجمالي: "+money(gross2)+" | صافي: "+money(net2)+"</td></tr>"+
+      "<tr><td class='muted'>العمولات</td><td>شراء: "+money(feesBuy)+" — بيع١: "+money(feesSell1)+" — بيع٢: "+money(feesSell2)+"</td></tr>"+
+      "<tr><td class='muted'>وقف</td><td>"+money(s)+" ج.م | خسارة لكل سهم: "+money(e-s)+" ج.م</td></tr>";
+  }
+  const rows = [
+    ['Ticker', tkr],['Entry', e],['Capital', cap],['Risk %', riskPct*100],['Stop', s],['Qty', qty],
+    ['Commission % total', cPct*100],['Fixed fee per side', fee],
+    ['Target1', t1],['Gross1', gross1],['Net1', net1],
+    ['Target2', t2],['Gross2', gross2],['Net2', net2]
+  ];
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  const a = document.getElementById('dl_'+tkr); if(a){ a.href = href; a.download = tkr+'_calc.csv'; }
+};
+</script>
+</body>
+</html>
