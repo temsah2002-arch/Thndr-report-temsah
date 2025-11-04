@@ -78,5 +78,36 @@ async function boot(){
   try{ new TradingView.widget({width:"100%",height:380,symbol:"EGX:EGX30",interval:"60",timezone:"Africa/Cairo",theme:"dark",style:"1",locale:"ar",container_id:"egx"}); }catch(e){}
 }
 boot();
+  <script>
+/* ... كودك الحالي ... */
+
+let REFRESH_MS = 5 * 60 * 1000; // كل 5 دقائق
+
+async function refreshOnce(){
+  // أعد جلب الملفات وتحديث الأرقام بدون إعادة الرسم من الصفر
+  try{
+    const [p,market] = await Promise.all([
+      fetch('data/portfolio.json?_=' + Date.now()).then(r=>r.json()),
+      fetch('data/market.json?_=' + Date.now()).then(r=>r.json())
+    ]);
+    // شريط علوي
+    document.getElementById('tb_val').textContent = new Intl.NumberFormat('ar-EG').format(p.portfolio_value);
+    document.getElementById('tb_day').innerHTML =
+      `<span class="${p.day_change>=0?'pos':'neg'}">${new Intl.NumberFormat('ar-EG').format(p.day_change)} (${(p.day_change_pct>=0?'+':'') + p.day_change_pct.toFixed(2)}%)</span>`;
+    const egx30 = market?.egx30?.chg_pct ?? 0, egx70 = market?.egx70?.chg_pct ?? 0, usd = market?.usd_egp ?? 0;
+    document.getElementById('tb_mkt').innerHTML =
+      `EGX30 <span class="${egx30>=0?'pos':'neg'}">${(egx30>=0?'+':'')+egx30.toFixed(2)}%</span> • ` +
+      `EGX70 <span class="${egx70>=0?'pos':'neg'}">${(egx70>=0?'+':'')+egx70.toFixed(2)}%</span> • $ ${new Intl.NumberFormat('ar-EG').format(usd)}`;
+  }catch(e){}
+}
+
+function enableAutoRefresh(){
+  refreshOnce();                     // تحديث أولي
+  setInterval(refreshOnce, REFRESH_MS);
+}
+
+boot();
+enableAutoRefresh();
+</script>
 </script>
 </body></html>
