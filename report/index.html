@@ -118,4 +118,19 @@ function calc(){
 const e_=document.getElementById('e'),cap_=document.getElementById('cap'),risk_=document.getElementById('risk'),s_=document.getElementById('s'),t1_=document.getElementById('t1'),t2_=document.getElementById('t2'),c_=document.getElementById('c'),f_=document.getElementById('f');
 const csv_=document.createElement('a');load();goto(location.hash.replace('#','')||'HOME');
 </script>
+  <script>
+// قراءة قيم مرسلة من الخطة/الداشبورد وملء الحاسبة تلقائيًا
+(function(){
+  try{
+    const p = JSON.parse(sessionStorage.getItem('prefill')||'{}');
+    if(p && (p.e||p.stop||p.t1||p.t2)){
+      const set=(id,v)=>{const el=document.getElementById(id); if(el && v!=null && !Number.isNaN(v)) el.value=v;}
+      set('e',p.e); set('s',p.stop); set('t1',p.t1); set('t2',p.t2);
+      // افتح تبويب الحاسبة مباشرة
+      if(location.hash!=='#CALC'){ location.hash='CALC'; }
+      if(typeof calc==='function') setTimeout(calc,200);
+    }
+  }catch(e){}
+})();
+</script>
 </body></html>
