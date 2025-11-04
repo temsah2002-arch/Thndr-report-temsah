@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thndr — Dashboard</title>
+<style>
+:root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
+.container{max-width:1200px;margin:22px auto;padding:0 16px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.title{font-size:26px;font-weight:800}.chip{background:#14141b;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:12px}
+.grid{display:grid;gap:12px}.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:#14141b;border:1px solid var(--border);border-radius:16px;padding:16px}
+.stat{display:flex;justify-content:space-between;align-items:center;background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:12px}
+.stat b{font-size:18px}.small{color:var(--muted);font-size:12px}
+.btn{display:inline-block;background:var(--acc);color:#fff;text-decoration:none;border:0;border-radius:12px;padding:10px 14px}
+.linkrow{display:flex;gap:8px;flex-wrap:wrap}
+.table{width:100%;border-collapse:collapse;background:#0f1016;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
+.table th{background:#101118;color:#cbd5e1}.pos-good{color:var(--good)}.pos-bad{color:var(--bad)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
+</head><body><div class="container">
+  <div class="header"><div class="title">لوحة ثاندر — Dashboard</div><div id="date" class="chip">—</div></div>
+
+  <div class="grid two">
+    <div class="card">
+      <div class="grid two" id="stats"></div>
+      <div style="margin-top:10px" class="linkrow">
+        <a class="btn" href="report/">التقرير اليومي</a>
+        <a class="btn" href="plan/">خطة إيداع 24</a>
+        <a class="btn" href="report/#CALC">حاسبة تداول</a>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:6px">توزيع المحفظة</div>
+      <canvas id="alloc" height="280"></canvas>
+      <div id="allocLegend" class="small" style="margin-top:6px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:6px">EGX30 — مباشر</div>
+    <div id="egx" style="height:380px"></div>
+    <div class="small">إن لم يظهر الرسم جرّب شبكة أخرى أو افتحه من المتصفح مباشرة.</div>
+  </div>
+
+  <div class="card" style="padding:0;margin-top:12px">
+    <table class="table" id="pos">
+      <thead><tr><th>السهم</th><th>الوحدات</th><th>متوسط</th><th>آخر</th><th>القيمة</th><th>الربح/الخسارة</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(n);
+const pct=n=>((n>=0?'+':'')+n.toFixed(2)+'%');
+async function boot(){
+  const p=await (await fetch('data/portfolio.json?_='+Date.now())).json();
+  document.getElementById('date').textContent=new Date(p.as_of).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+  // إحصائيات
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><span>قيمة استثماري</span><b>${fmt(p.portfolio_value)}</b></div>
+    <div class="stat"><span>تغير اليوم</span><b class="${p.day_change>=0?'pos-good':'pos-bad'}">${fmt(p.day_change)} (${pct(p.day_change_pct)})</b></div>`;
+  // جدول
+  const tb=document.querySelector('#pos tbody');
+  tb.innerHTML=p.positions.map(x=>`
+    <tr><td><b>${x.ticker}</b> — <span class="small">${x.name}</span></td>
+    <td>${fmt(x.units,0)}</td><td>${fmt(x.avg_price)}</td><td>${fmt(x.last)}</td>
+    <td>${fmt(x.market_value)}</td>
+    <td class="${x.pnl>=0?'pos-good':'pos-bad'}">${fmt(x.pnl)} (${pct(x.pnl_pct)})</td></tr>`).join('');
+  // توزيع
+  const ctx=document.getElementById('alloc').getContext('2d');
+  const labels=p.positions.map(x=>x.ticker), data=p.positions.map(x=>x.market_value);
+  const total=data.reduce((a,b)=>a+b,0), per=data.map(v=>v/total*100);
+  new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,borderWidth:0}]},options:{plugins:{legend:{display:false}},cutout:'60%'}});
+  document.getElementById('allocLegend').innerHTML=labels.map((l,i)=>`${l}: ${fmt(per[i])}%`).join(' • ');
+  // EGX30
+  try{ new TradingView.widget({width:"100%",height:380,symbol:"EGX:EGX30",interval:"60",timezone:"Africa/Cairo",theme:"dark",style:"1",locale:"ar",container_id:"egx"}); }catch(e){}
+}
+boot();
+</script>
+</body></html>
