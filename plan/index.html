@@ -1,198 +1,224 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>خطة إيداع 24</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
-.container{max-width:1200px;margin:22px auto;padding:0 16px}
-.header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
-.title{font-size:26px;font-weight:800}
-.chip{background:var(--card);border:1px solid var(--border);color:#cbd5e1;padding:6px 10px;border-radius:10px}
-.btn{background:var(--acc);color:#fff;text-decoration:none;border:0;border-radius:12px;padding:10px 14px;display:inline-block}
-.btn.alt{background:#2e2f39}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin:10px 0}
-.grid{display:grid;gap:12px}
-.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.small{color:var(--muted);font-size:12px}
-.table{width:100%;border-collapse:collapse;background:var(--soft);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
-.table th{background:#101118;color:#cbd5e1}
-.badge{display:inline-block;background:#101118;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:2px 10px;font-size:12px}
-.pos{color:var(--good)} .neg{color:var(--bad)}
-hr.sep{border:none;border-top:1px dashed #2a2c35;margin:10px 0}
-.input{background:#0f1016;border:1px solid var(--border);border-radius:10px;padding:10px;color:#fff}
-.range{width:100%}
-.note{background:#101118;border:1px solid var(--border);border-radius:10px;padding:10px}
-</style>
-</head><body>
-<div class="container">
-  <div class="header">
-    <div class="title">خطة إيداع 24</div>
-    <div class="chip" id="asof">—</div>
-    <div class="chip" id="next">الإيداع القادم: —</div>
-    <div class="chip" id="countdown">— يوم متبقٍ</div>
-    <div style="margin-inline-start:auto;display:flex;gap:8px">
-      <a class="btn alt" href="../">الرجوع للوحة</a>
-      <button class="btn" id="export">تصدير CSV</button>
-    </div>
-  </div>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>خطة إيداع 24</title>
 
-  <div class="grid two">
-    <div class="card">
-      <div style="font-weight:700;margin-bottom:6px">بيانات الخطة</div>
-      <div class="grid two">
-        <div>
-          <div class="small">المبلغ الشهري المخطط</div>
-          <div style="font-weight:800" id="amt">—</div>
+  <!-- النمط العام للمشروع (نفس الملف المستخدم في الصفحة الرئيسية) -->
+  <link rel="stylesheet" href="../assets/ui.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- لمسات خفيفة خاصة بهذه الصفحة فقط -->
+  <style>
+    .note{background:#101118;border:1px solid var(--border);border-radius:10px;padding:10px}
+    .range{width:100%}
+    .table{width:100%;border-collapse:collapse;background:var(--soft);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
+    .table th{background:#101118;color:#cbd5e1}
+    .badge{display:inline-block;background:#101118;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:2px 10px;font-size:12px}
+    .small{color:var(--muted);font-size:12px}
+    .chip.warn{color:#fff;background:#3a1c1c;border-color:#532626}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- الهيدر -->
+    <div class="header">
+      <div class="title">خطة إيداع 24</div>
+      <div class="chip" id="asof">—</div>
+      <div class="chip" id="next">الإيداع القادم: —</div>
+      <div class="chip" id="countdown">— يوم متبقٍ</div>
+      <div class="toolbar" style="margin-inline-start:auto">
+        <a class="btn btn--soft" href="../">الرجوع للوحة</a>
+        <button class="btn" id="export">تصدير CSV</button>
+      </div>
+    </div>
+
+    <div class="grid two">
+      <!-- بطاقة بيانات الخطة -->
+      <div class="card">
+        <div class="small" style="font-weight:700;margin-bottom:6px">بيانات الخطة</div>
+        <div class="grid two">
+          <div>
+            <div class="small">المبلغ الشهري المخطط</div>
+            <div id="amt" style="font-weight:800">—</div>
+          </div>
+          <div>
+            <div class="small">توزيع (صناديق / أسهم)</div>
+            <div id="mix" style="font-weight:800">—</div>
+          </div>
         </div>
-        <div>
-          <div class="small">توزيع (صناديق / أسهم)</div>
-          <div style="font-weight:800" id="mix">—</div>
+        <hr class="sep">
+        <div class="small">
+          يمكنك تعديل أوزان كل أصل بالأسفل، وسيعاد حساب عدد الوحدات المقترح تلقائيًا.
+        </div>
+        <div class="row" style="gap:8px;margin-top:8px">
+          <span class="chip" id="weights_total">مجموع الأوزان: —%</span>
         </div>
       </div>
-      <hr class="sep">
-      <div class="small">يمكن تعديل أوزان كل أصل بالأسفل، وسيعاد حساب عدد الوحدات المقترح تلقائيًا.</div>
+
+      <!-- بطاقة الدونات -->
+      <div class="card">
+        <div class="small" style="font-weight:700;margin-bottom:6px">توزيع مبلغ الإيداع</div>
+        <canvas id="pie" height="220"></canvas>
+        <div class="small" id="pieLegend" style="margin-top:6px"></div>
+      </div>
+    </div>
+
+    <!-- الجدول -->
+    <div class="card" style="padding:0">
+      <table class="table" id="tbl">
+        <thead>
+          <tr>
+            <th>الأصل</th>
+            <th>النوع</th>
+            <th>السعر</th>
+            <th>وزن %</th>
+            <th>مبلغ مخصص</th>
+            <th>وحدات مقترحة</th>
+            <th>ملاحظات</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <th colspan="4">الإجمالي</th>
+            <th id="sum_amt">—</th>
+            <th id="sum_units">—</th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
     </div>
 
     <div class="card">
-      <div style="font-weight:700;margin-bottom:6px">توزيع مبلغ الإيداع</div>
-      <canvas id="pie" height="220"></canvas>
-      <div class="small" id="pieLegend" style="margin-top:6px"></div>
+      <div class="small" style="font-weight:700;margin-bottom:6px">ملاحظات الخطة</div>
+      <div id="plan_notes" class="note small">—</div>
     </div>
   </div>
 
-  <div class="card" style="padding:0">
-    <table class="table" id="tbl">
-      <thead>
+  <script>
+    const fmt = (n,d=2)=> new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
+
+    let PLAN={}, PORT={}, CHART;
+
+    async function load(){
+      // مصادر البيانات
+      PLAN = await fetch('../data/deposit_plan.json?_=' + Date.now()).then(r=>r.json());
+      PORT = await fetch('../data/portfolio.json?_=' + Date.now()).then(r=>r.json());
+
+      // رأس الصفحة
+      document.getElementById('asof').textContent =
+        new Date(PORT.as_of||Date.now()).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+      document.getElementById('amt').textContent = fmt(PLAN.monthly_amount) + ' ج.م';
+      document.getElementById('mix').textContent = `${PLAN.mix?.funds||0}% صناديق • ${PLAN.mix?.stocks||0}% أسهم`;
+      document.getElementById('plan_notes').textContent = PLAN.notes || '—';
+
+      // الإيداع القادم + عد تنازلي
+      const next = new Date(PLAN.next_deposit_date);
+      document.getElementById('next').textContent =
+        'الإيداع القادم: ' + next.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+      const days = Math.ceil((next - new Date())/86400000);
+      document.getElementById('countdown').textContent = (days>=0?days:0) + ' يوم متبقٍ';
+
+      renderTable();
+      renderPie();
+      bindExport();
+    }
+
+    function inferPrice(tkr){
+      const p = (PORT.positions||[]).find(x=>x.ticker===tkr);
+      return p?.last ?? 0;
+    }
+    function inferType(tkr){
+      const p = (PORT.positions||[]).find(x=>x.ticker===tkr);
+      return p?.type ?? 'stock';
+    }
+
+    function renderTable(){
+      const tb = document.querySelector('#tbl tbody');
+
+      const rows = (PLAN.targets||[]).map(t=>{
+        const price = t.last ?? inferPrice(t.ticker);
+        const type  = t.type ?? inferType(t.ticker);
+        const amt   = (PLAN.monthly_amount||0) * ((t.weight||0)/100);
+        const units = price>0 ? Math.floor(amt/price) : 0;
+        return {...t, price, type, amt, units};
+      });
+
+      tb.innerHTML = rows.map(r=>`
         <tr>
-          <th>الأصل</th><th>النوع</th><th>السعر</th><th>وزن %</th>
-          <th>مبلغ مخصص</th><th>وحدات مقترحة</th><th>ملاحظات</th>
+          <td><b>${r.ticker}</b> <span class="small">— ${r.name||''}</span></td>
+          <td><span class="badge">${r.type==='fund'?'صندوق':'سهم'}</span></td>
+          <td>${fmt(r.price)}</td>
+          <td>
+            <input type="range" class="range" value="${r.weight}" min="0" max="100" step="1"
+                   oninput="updateWeight('${r.ticker}',this.value)" title="وزن مخصص">
+            <div class="small">${r.weight}%</div>
+          </td>
+          <td>${fmt(r.amt)}</td>
+          <td>${r.units}</td>
+          <td class="small">${r.note||''}</td>
         </tr>
-      </thead>
-      <tbody></tbody>
-      <tfoot>
-        <tr>
-          <th colspan="4">الإجمالي</th>
-          <th id="sum_amt">—</th>
-          <th id="sum_units">—</th>
-          <th></th>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+      `).join('');
 
-  <div class="card">
-    <div style="font-weight:700;margin-bottom:6px">ملاحظات الخطة</div>
-    <div id="plan_notes" class="note small">—</div>
-  </div>
-</div>
+      // إجماليات
+      const sumAmt   = rows.reduce((a,b)=>a+b.amt,0);
+      const sumUnits = rows.reduce((a,b)=>a+b.units,0);
+      const sumW     = (PLAN.targets||[]).reduce((a,b)=>a+(+b.weight||0),0);
 
-<script>
-const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
+      document.getElementById('sum_amt').textContent   = fmt(sumAmt);
+      document.getElementById('sum_units').textContent = fmt(sumUnits,0);
 
-let PLAN={}, PORT={}, CHART;
+      // شارة مجموع الأوزان (تحذير لو ≠ 100%)
+      const wt = document.getElementById('weights_total');
+      wt.textContent = 'مجموع الأوزان: ' + fmt(sumW,0) + '%';
+      wt.className = 'chip' + (Math.round(sumW)===100 ? '' : ' warn');
 
-async function load(){
-  // قراءة ملفات البيانات
-  PLAN = await fetch('../data/deposit_plan.json?_='+Date.now()).then(r=>r.json());
-  PORT = await fetch('../data/portfolio.json?_='+Date.now()).then(r=>r.json());
+      // خزن للـ CSV
+      window.__rows = rows;
+    }
 
-  // رأس الصفحة
-  document.getElementById('asof').textContent = new Date(PORT.as_of||Date.now()).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('amt').textContent = fmt(PLAN.monthly_amount) + ' ج.م';
-  document.getElementById('mix').textContent = `${PLAN.mix?.funds||0}% صناديق • ${PLAN.mix?.stocks||0}% أسهم`;
-  document.getElementById('plan_notes').textContent = PLAN.notes || '—';
+    function renderPie(){
+      const labels = (PLAN.targets||[]).map(t=>t.ticker);
+      const data   = (PLAN.targets||[]).map(t=>+t.weight||0);
+      const ctx    = document.getElementById('pie').getContext('2d');
 
-  // موعد الإيداع القادم + العد التنازلي
-  const next = new Date(PLAN.next_deposit_date);
-  document.getElementById('next').textContent = 'الإيداع القادم: ' + next.toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
-  const days = Math.ceil((next - new Date())/86400000);
-  document.getElementById('countdown').textContent = (days>=0?days:0) + ' يوم متبقٍ';
+      if (CHART) CHART.destroy();
+      CHART = new Chart(ctx,{
+        type:'doughnut',
+        data:{labels, datasets:[{data, borderWidth:0}]},
+        options:{plugins:{legend:{display:false}}, cutout:'60%'}
+      });
 
-  renderTable();
-  renderPie();
-  bindExport();
-}
+      document.getElementById('pieLegend').innerHTML =
+        labels.map((l,i)=>`${l}: ${fmt(data[i])}%`).join(' • ');
+    }
 
-function inferPrice(tkr){
-  const p = (PORT.positions||[]).find(x=>x.ticker===tkr);
-  return p?.last ?? 0;
-}
-function inferType(tkr){
-  const p = (PORT.positions||[]).find(x=>x.ticker===tkr);
-  return p?.type ?? 'stock';
-}
+    function updateWeight(tkr,val){
+      const t = (PLAN.targets||[]).find(x=>x.ticker===tkr);
+      if(!t) return;
+      t.weight = +val;
+      renderTable();
+      renderPie();
+    }
 
-function renderTable(){
-  const tb = document.querySelector('#tbl tbody');
-  const rows = PLAN.targets.map(t=>{
-    const price = t.last ?? inferPrice(t.ticker);
-    const type = t.type ?? inferType(t.ticker);
-    const amt = PLAN.monthly_amount * (t.weight/100);
-    const units = price>0 ? Math.floor(amt/price) : 0;
-    return {...t, price, type, amt, units};
-  });
+    function bindExport(){
+      document.getElementById('export').onclick = ()=>{
+        const rows = (window.__rows||[]).map(r=>[
+          r.ticker, r.name||'', r.type, r.price, r.weight, r.amt, r.units
+        ]);
+        const header = ['Ticker','Name','Type','Last','Weight%','AllocAmount','SuggestedUnits'];
+        const csv = [header, ...rows].map(a=>a.join(',')).join('\n');
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+        a.download='deposit_plan.csv';
+        a.click();
+      };
+    }
 
-  tb.innerHTML = rows.map(r=>`
-    <tr>
-      <td><b>${r.ticker}</b> <span class="small">— ${r.name||''}</span></td>
-      <td><span class="badge">${r.type==='fund'?'صندوق':'سهم'}</span></td>
-      <td>${fmt(r.price)}</td>
-      <td>
-        <input type="range" class="range" value="${r.weight}" min="0" max="100" step="1"
-               oninput="updateWeight('${r.ticker}',this.value)" title="وزن مخصص">
-        <div class="small">${r.weight}%</div>
-      </td>
-      <td>${fmt(r.amt)}</td>
-      <td>${r.units}</td>
-      <td class="small">${r.note||''}</td>
-    </tr>
-  `).join('');
-
-  // إجماليات
-  const sumAmt = rows.reduce((a,b)=>a+b.amt,0);
-  const sumUnits = rows.reduce((a,b)=>a+b.units,0);
-  document.getElementById('sum_amt').textContent = fmt(sumAmt);
-  document.getElementById('sum_units').textContent = fmt(sumUnits,0);
-
-  // حفظ rows لحساب الدونات
-  window.__rows = rows;
-}
-
-function renderPie(){
-  const labels = PLAN.targets.map(t=>t.ticker);
-  const data = PLAN.targets.map(t=>t.weight);
-  const ctx = document.getElementById('pie').getContext('2d');
-  if (CHART) CHART.destroy();
-  CHART = new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,borderWidth:0}]},
-    options:{plugins:{legend:{display:false}},cutout:'60%'}});
-  document.getElementById('pieLegend').innerHTML =
-    labels.map((l,i)=>`${l}: ${fmt(data[i])}%`).join(' • ');
-}
-
-function updateWeight(tkr,val){
-  const t = PLAN.targets.find(x=>x.ticker===tkr);
-  if(!t) return;
-  t.weight = +val;
-  renderTable();
-  renderPie();
-}
-
-function bindExport(){
-  document.getElementById('export').onclick=()=>{
-    const rows = (window.__rows||[]).map(r=>[
-      r.ticker, r.name||'', r.type, r.price, r.weight, r.amt, r.units
-    ]);
-    const header = ['Ticker','Name','Type','Last','Weight%','AllocAmount','SuggestedUnits'];
-    const csv = [header, ...rows].map(a=>a.join(',')).join('\n');
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-    a.download='deposit_plan.csv'; a.click();
-  };
-}
-
-load();
-</script>
-</body></html>
+    load();
+  </script>
+</body>
+</html>
