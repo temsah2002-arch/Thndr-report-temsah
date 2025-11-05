@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محفظتي — الأصول المملوكة</title>
+<style>
+:root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial}
+.container{max-width:1200px;margin:22px auto;padding:0 16px}
+.header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.title{font-size:24px;font-weight:800}
+.chip{background:#14141b;border:1px solid var(--border);color:#a1a1aa;padding:6px 10px;border-radius:10px}
+.card{background:#14141b;border:1px solid var(--border);border-radius:14px;padding:14px;margin:12px 0}
+.grid{display:grid;gap:12px}.two{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.input{background:#0f1016;border:1px solid var(--border);border-radius:10px;padding:10px;color:#fff}
+.chk{display:flex;align-items:center;gap:6px}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;text-decoration:none}
+.small{color:var(--muted);font-size:12px}
+.table{width:100%;border-collapse:collapse;background:#0f1016;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
+.table th{background:#101118;color:#cbd5e1}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.badge{display:inline-block;background:#101118;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:2px 10px;font-size:12px}
+.details{display:none}
+hr.sep{border:none;border-top:1px dashed #2a2c35;margin:10px 0}
+</style>
+<script src="https://s3.tradingview.com/tv.js"></script>
+</head><body>
+<div class="container">
+  <div class="header">
+    <div class="title">محفظتي — الأصول المملوكة</div>
+    <div id="date" class="chip">—</div>
+    <div class="row" style="margin-inline-start:auto">
+      <a class="btn" href="../">الرجوع للوحة</a>
+    </div>
+  </div>
+
+  <!-- شريط تحكم -->
+  <div class="card">
+    <div class="row">
+      <input id="q" class="input" placeholder="بحث بالرمز أو الاسم…" style="min-width:220px">
+      <label class="chk"><input type="checkbox" id="onlyFunds"> عرض الصناديق فقط</label>
+      <label class="chk"><input type="checkbox" id="onlyStocks"> عرض الأسهم فقط</label>
+      <button id="export" class="btn">تصدير CSV</button>
+    </div>
+    <div class="small" id="summary">—</div>
+  </div>
+
+  <!-- إجماليات سريعة -->
+  <div class="grid two">
+    <div class="card" id="totals">
+      <div style="font-weight:700;margin-bottom:6px">ملخص سريع</div>
+      <div class="grid two">
+        <div><div class="small">قيمة المحفظة</div><div id="pf_val" style="font-weight:800">—</div></div>
+        <div><div class="small">تغير اليوم</div><div id="pf_chg" style="font-weight:800">—</div></div>
+      </div>
+      <hr class="sep">
+      <div class="grid two">
+        <div><div class="small">عدد المراكز</div><div id="pf_cnt" style="font-weight:700">—</div></div>
+        <div><div class="small">أكبر مركز</div><div id="pf_top" style="font-weight:700">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:6px">فلترة سريعة</div>
+      <div class="row small">
+        • اكتب جزء من الرمز/الاسم في مربع البحث.  
+        • “الصناديق فقط” يعتمد على حقل <code>type</code> إن وُجد أو أسماء معروفة (مثل ABR).  
+        • اضغط على رمز الأصل لفتح بطاقة التفاصيل مع الرسم الحي.
+      </div>
+    </div>
+  </div>
+
+  <!-- جدول رئيسي -->
+  <div class="card" style="padding:0">
+    <table class="table" id="tbl">
+      <thead>
+        <tr>
+          <th>الأصل</th><th>النوع</th><th>الوحدات</th><th>متوسط</th><th>آخر</th>
+          <th>القيمة</th><th>الربح/الخسارة</th><th>%</th><th>تفاصيل</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr>
+          <th colspan="5">الإجمالي</th>
+          <th id="sum_mv">—</th>
+          <th id="sum_pnl">—</th>
+          <th id="sum_pnlpct">—</th>
+          <th></th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- بطاقة تفاصيل -->
+  <div id="details" class="card details">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div><span class="badge" id="d_tkr">—</span> <b id="d_name">—</b> <span class="badge" id="d_type">—</span></div>
+      <button class="btn" id="close">إغلاق</button>
+    </div>
+    <div class="grid two" style="margin-top:8px">
+      <div>
+        <div class="small">ملخص:</div>
+        <div id="d_stats" class="small">—</div>
+        <hr class="sep">
+        <div class="small">ملاحظات:</div>
+        <div id="d_notes" class="small">—</div>
+      </div>
+      <div>
+        <div id="tv" style="height:300px;border-radius:10px;overflow:hidden"></div>
+        <div class="small">الرسم الحي عبر TradingView (EGX).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
+const pct=(n)=> ( (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%' );
+
+// محاولة تصنيف "صندوق" إذا لم يوجد type
+function inferType(pos){
+  if(pos.type) return pos.type; // "fund" | "stock"
+  const t = String(pos.ticker||pos.tkr||'').toUpperCase();
+  const name = (pos.name||'').toLowerCase();
+  if(['ABR','ABRD','ABREK','BRIQ','FUND','ETF'].some(x=>t.includes(x))) return 'fund';
+  if(/صندوق|وثيقة|استثمار/.test(name)) return 'fund';
+  return 'stock';
+}
+
+let DATA=[], RAW;
+
+async function boot(){
+  RAW = await fetch('../data/portfolio.json?_='+Date.now()).then(r=>r.json());
+  document.getElementById('date').textContent =
+    new Date(RAW.as_of||Date.now()).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+
+  // ندعم بنية: positions[] (الموصى بها) أو holdings[] (بالأوزان)
+  const positions = Array.isArray(RAW.positions) ? RAW.positions : [];
+  const holdings = Array.isArray(RAW.holdings) ? RAW.holdings : [];
+
+  // لو عندك فقط holdings (وزن %) نحولها لصفوف بسيطة بدون أرقام تداول
+  let holdRows = holdings.map(h=>({
+    ticker: h.tkr||h.ticker, name:h.name, units: h.units||0, avg_price: h.avg_price||0, last:h.last||0,
+    market_value: h.market_value || 0, pnl: h.pnl || 0, pnl_pct: h.pnl_pct || 0, weight: h.weight, type: h.type
+  }));
+
+  DATA = [...positions, ...holdRows].map(x=>({
+    ticker: x.ticker || x.tkr,
+    name: x.name || '',
+    units: +x.units || 0,
+    avg_price: +x.avg_price || 0,
+    last: +x.last || 0,
+    market_value: +x.market_value || (+x.units||0) * (+x.last||0),
+    pnl: +x.pnl || (+x.last - +x.avg_price) * (+x.units||0),
+    pnl_pct: (x.pnl_pct!=null)? +x.pnl_pct : ((+x.last - +x.avg_price) / ( +x.avg_price || 1)) * 100,
+    type: inferType(x),
+    notes: x.notes || ''
+  }));
+
+  // ملخص أعلى
+  document.getElementById('pf_val').textContent = fmt(RAW.portfolio_value||DATA.reduce((a,b)=>a+b.market_value,0));
+  const dy = RAW.day_change||0, dyp = RAW.day_change_pct||0;
+  document.getElementById('pf_chg').innerHTML = `<span class="${dy>=0?'pos':'neg'}">${fmt(dy)} (${pct(dyp)})</span>`;
+  document.getElementById('pf_cnt').textContent = DATA.length;
+  const top = DATA.slice().sort((a,b)=>b.market_value-a.market_value)[0];
+  document.getElementById('pf_top').textContent = top ? `${top.ticker} — ${fmt(top.market_value)}` : '—';
+
+  bind();
+  render();
+}
+
+function bind(){
+  q.addEventListener('input', render);
+  onlyFunds.addEventListener('change', e=>{ if(e.target.checked) onlyStocks.checked=false; render(); });
+  onlyStocks.addEventListener('change', e=>{ if(e.target.checked) onlyFunds.checked=false; render(); });
+  export.addEventListener('click', doExport);
+  close.addEventListener('click', ()=> document.getElementById('details').style.display='none');
+}
+
+function render(){
+  const term = (q.value||'').trim().toLowerCase();
+  const fFunds = onlyFunds.checked, fStocks = onlyStocks.checked;
+  let rows = DATA.filter(r=>{
+    const hit = !term || r.ticker?.toLowerCase().includes(term) || r.name.toLowerCase().includes(term);
+    const typeOk = fFunds ? r.type==='fund' : fStocks ? r.type==='stock' : true;
+    return hit && typeOk;
+  });
+
+  // Summary
+  const mv = rows.reduce((a,b)=>a+b.market_value,0);
+  const pnl = rows.reduce((a,b)=>a+b.pnl,0);
+  const pnlpct = (mv>0 ? (pnl / (mv - pnl)) * 100 : 0);
+  summary.innerHTML = `العناصر: <b>${rows.length}</b> • قيمة: <b>${fmt(mv)}</b> • صافي ربح/خسارة: <b class="${pnl>=0?'pos':'neg'}">${fmt(pnl)} (${pct(pnlpct)})</b>`;
+
+  // Table
+  const tb = document.querySelector('#tbl tbody');
+  tb.innerHTML = rows.map(r=>{
+    const cls = r.pnl>=0?'pos':'neg';
+    return `<tr>
+      <td><a href="javascript:void(0)" onclick="openDetails('${r.ticker}')" title="عرض التفاصيل"><b>${r.ticker}</b></a> — <span class="small">${r.name}</span></td>
+      <td><span class="badge">${r.type==='fund'?'صندوق':'سهم'}</span></td>
+      <td>${fmt(r.units,0)}</td>
+      <td>${fmt(r.avg_price)}</td>
+      <td>${fmt(r.last)}</td>
+      <td>${fmt(r.market_value)}</td>
+      <td class="${cls}">${fmt(r.pnl)}</td>
+      <td class="${cls}">${pct(r.pnl_pct)}</td>
+      <td><a class="btn" href="../report/#CALC" onclick="prefillCalc(${r.last||r.avg_price||0})">إلى الحاسبة</a></td>
+    </tr>`;
+  }).join('');
+
+  // Footer sums
+  sum_mv.textContent = fmt(mv);
+  sum_pnl.textContent = fmt(pnl);
+  sum_pnlpct.textContent = pct(pnlpct);
+}
+
+function prefillCalc(entry){
+  sessionStorage.setItem('prefill', JSON.stringify({e:entry}));
+}
+
+function doExport(){
+  const rows=[["Ticker","Name","Type","Units","AvgPrice","Last","MarketValue","PnL","PnLPct"]];
+  const term = (q.value||'').trim().toLowerCase();
+  const fFunds = onlyFunds.checked, fStocks = onlyStocks.checked;
+  DATA.forEach(r=>{
+    const hit = !term || r.ticker?.toLowerCase().includes(term) || r.name.toLowerCase().includes(term);
+    const typeOk = fFunds ? r.type==='fund' : fStocks ? r.type==='stock' : true;
+    if(!hit || !typeOk) return;
+    rows.push([r.ticker, r.name, r.type, r.units, r.avg_price, r.last, r.market_value, r.pnl, r.pnl_pct]);
+  });
+  const csv = rows.map(r=>r.join(",")).join("\n");
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='my_portfolio.csv';
+  a.click();
+}
+
+function openDetails(tkr){
