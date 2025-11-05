@@ -5,19 +5,19 @@
       "date": "2025-11-04",
       "portfolio_value": 783052,
       "day_change": 1537,
-      "day_change_pct": 0.20,
+      "day_change_pct": 0.2,
       "best_stock": "TMGH",
       "worst_stock": "EGAL",
       "notes": "جلسة هادئة؛ سيولة ضعيفة قبل الإيداع الشهري."
     },
     {
-  "date": "2025-11-05",
-  "portfolio_value": 7850.49,
-  "day_change": -17.67,
-  "day_change_pct": -0.22,
-  "best_stock": "COMI",
-  "worst_stock": "BSB",
-  "notes": "جلسة سلبية طفيفة؛ أفضل أداء COMI (+1.22%)، أضعف BSB (-4.78%). يُفضّل مراقبة FWRY وBSB والاحتفاظ بـ ABR/BMM/COMI."
+      "date": "2025-11-05",
+      "portfolio_value": 7850.49,
+      "day_change": -17.67,
+      "day_change_pct": -0.22,
+      "best_stock": "COMI",
+      "worst_stock": "BSB",
+      "notes": "تحديث تلقائي من لوحة Thndr."
     }
-    ]
+  ]
 }
