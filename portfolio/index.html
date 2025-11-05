@@ -113,36 +113,46 @@ hr.sep{border:none;border-top:1px dashed #2a2c35;margin:10px 0}
     </div>
   </div>
 </div>
-
 <script>
-const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
-const pct=(n)=> ( (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%' );
+const $ = id => document.getElementById(id);
+const fmt = (n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
+const pct = n => ((n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%');
 
-// محاولة تصنيف "صندوق" إذا لم يوجد type
 function inferType(pos){
-  if(pos.type) return pos.type; // "fund" | "stock"
+  if(pos.type) return pos.type;
   const t = String(pos.ticker||pos.tkr||'').toUpperCase();
   const name = (pos.name||'').toLowerCase();
-  if(['ABR','ABRD','ABREK','BRIQ','FUND','ETF'].some(x=>t.includes(x))) return 'fund';
+  if(['ABR','ETF','FUND','BRIQ'].some(x=>t.includes(x))) return 'fund';
   if(/صندوق|وثيقة|استثمار/.test(name)) return 'fund';
   return 'stock';
 }
 
-let DATA=[], RAW;
+let RAW = null, DATA = [];
+
+// عناصر DOM المستخدَمة
+const q = $('q'),
+      onlyFunds = $('onlyFunds'),
+      onlyStocks = $('onlyStocks'),
+      summary = $('summary'),
+      pf_val = $('pf_val'),
+      pf_chg = $('pf_chg'),
+      pf_cnt = $('pf_cnt'),
+      pf_top = $('pf_top'),
+      sum_mv = $('sum_mv'),
+      sum_pnl = $('sum_pnl'),
+      sum_pnlpct = $('sum_pnlpct');
 
 async function boot(){
   RAW = await fetch('../data/portfolio.json?_='+Date.now()).then(r=>r.json());
-  document.getElementById('date').textContent =
-    new Date(RAW.as_of||Date.now()).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+  $('date').textContent = new Date(RAW.as_of||Date.now())
+                    .toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
 
-  // ندعم بنية: positions[] (الموصى بها) أو holdings[] (بالأوزان)
-  const positions = Array.isArray(RAW.positions) ? RAW.positions : [];
-  const holdings = Array.isArray(RAW.holdings) ? RAW.holdings : [];
+  const positions = Array.isArray(RAW.positions)? RAW.positions : [];
+  const holdings  = Array.isArray(RAW.holdings)? RAW.holdings : [];
 
-  // لو عندك فقط holdings (وزن %) نحولها لصفوف بسيطة بدون أرقام تداول
-  let holdRows = holdings.map(h=>({
-    ticker: h.tkr||h.ticker, name:h.name, units: h.units||0, avg_price: h.avg_price||0, last:h.last||0,
-    market_value: h.market_value || 0, pnl: h.pnl || 0, pnl_pct: h.pnl_pct || 0, weight: h.weight, type: h.type
+  const holdRows = holdings.map(h=>({
+    ticker: h.tkr||h.ticker, name:h.name, units:+h.units||0, avg_price:+h.avg_price||0,
+    last:+h.last||0, market_value:+h.market_value||0, pnl:+h.pnl||0, pnl_pct:+h.pnl_pct||0, type:h.type
   }));
 
   DATA = [...positions, ...holdRows].map(x=>({
@@ -151,20 +161,21 @@ async function boot(){
     units: +x.units || 0,
     avg_price: +x.avg_price || 0,
     last: +x.last || 0,
-    market_value: +x.market_value || (+x.units||0) * (+x.last||0),
-    pnl: +x.pnl || (+x.last - +x.avg_price) * (+x.units||0),
-    pnl_pct: (x.pnl_pct!=null)? +x.pnl_pct : ((+x.last - +x.avg_price) / ( +x.avg_price || 1)) * 100,
+    market_value: +x.market_value || ((+x.units||0) * (+x.last||0)),
+    pnl: (x.pnl!=null)? +x.pnl : ((+x.last - +x.avg_price) * (+x.units||0)),
+    pnl_pct: (x.pnl_pct!=null)? +x.pnl_pct :
+             ((+x.avg_price)? ((+x.last - +x.avg_price)/+x.avg_price)*100 : 0),
     type: inferType(x),
     notes: x.notes || ''
   }));
 
   // ملخص أعلى
-  document.getElementById('pf_val').textContent = fmt(RAW.portfolio_value||DATA.reduce((a,b)=>a+b.market_value,0));
+  pf_val.textContent = fmt(RAW.portfolio_value || DATA.reduce((a,b)=>a+b.market_value,0));
   const dy = RAW.day_change||0, dyp = RAW.day_change_pct||0;
-  document.getElementById('pf_chg').innerHTML = `<span class="${dy>=0?'pos':'neg'}">${fmt(dy)} (${pct(dyp)})</span>`;
-  document.getElementById('pf_cnt').textContent = DATA.length;
+  pf_chg.innerHTML = `<span class="${dy>=0?'pos':'neg'}">${fmt(dy)} (${pct(dyp)})</span>`;
+  pf_cnt.textContent = DATA.length;
   const top = DATA.slice().sort((a,b)=>b.market_value-a.market_value)[0];
-  document.getElementById('pf_top').textContent = top ? `${top.ticker} — ${fmt(top.market_value)}` : '—';
+  pf_top.textContent = top ? `${top.ticker} — ${fmt(top.market_value)}` : '—';
 
   bind();
   render();
@@ -174,18 +185,22 @@ function bind(){
   q.addEventListener('input', render);
   onlyFunds.addEventListener('change', e=>{ if(e.target.checked) onlyStocks.checked=false; render(); });
   onlyStocks.addEventListener('change', e=>{ if(e.target.checked) onlyFunds.checked=false; render(); });
-  export.addEventListener('click', doExport);
-  close.addEventListener('click', ()=> document.getElementById('details').style.display='none');
+  $('export').addEventListener('click', doExport);
+  $('close').addEventListener('click', ()=> $('details').style.display='none');
 }
 
-function render(){
+function currentRows(){
   const term = (q.value||'').trim().toLowerCase();
   const fFunds = onlyFunds.checked, fStocks = onlyStocks.checked;
-  let rows = DATA.filter(r=>{
+  return DATA.filter(r=>{
     const hit = !term || r.ticker?.toLowerCase().includes(term) || r.name.toLowerCase().includes(term);
     const typeOk = fFunds ? r.type==='fund' : fStocks ? r.type==='stock' : true;
     return hit && typeOk;
   });
+}
+
+function render(){
+  const rows = currentRows();
 
   // Summary
   const mv = rows.reduce((a,b)=>a+b.market_value,0);
@@ -217,19 +232,12 @@ function render(){
 }
 
 function prefillCalc(entry){
-  sessionStorage.setItem('prefill', JSON.stringify({e:entry}));
+  try{ sessionStorage.setItem('prefill', JSON.stringify({e:entry})); }catch(e){}
 }
 
 function doExport(){
   const rows=[["Ticker","Name","Type","Units","AvgPrice","Last","MarketValue","PnL","PnLPct"]];
-  const term = (q.value||'').trim().toLowerCase();
-  const fFunds = onlyFunds.checked, fStocks = onlyStocks.checked;
-  DATA.forEach(r=>{
-    const hit = !term || r.ticker?.toLowerCase().includes(term) || r.name.toLowerCase().includes(term);
-    const typeOk = fFunds ? r.type==='fund' : fStocks ? r.type==='stock' : true;
-    if(!hit || !typeOk) return;
-    rows.push([r.ticker, r.name, r.type, r.units, r.avg_price, r.last, r.market_value, r.pnl, r.pnl_pct]);
-  });
+  currentRows().forEach(r=> rows.push([r.ticker,r.name,r.type,r.units,r.avg_price,r.last,r.market_value,r.pnl,r.pnl_pct]));
   const csv = rows.map(r=>r.join(",")).join("\n");
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -238,54 +246,30 @@ function doExport(){
 }
 
 function openDetails(tkr){
-  <script>
-function openDetails(tkr){
-  const r = DATA.find(x => String(x.ticker).toUpperCase() === String(tkr).toUpperCase());
+  const r = DATA.find(x=>x.ticker===tkr);
   if(!r) return;
-  // تعبئة العناوين
-  d_tkr.textContent = r.ticker;
-  d_name.textContent = r.name || '';
-  d_type.textContent = (r.type==='fund'?'صندوق':'سهم');
+  $('d_tkr').textContent = r.ticker;
+  $('d_name').textContent = r.name || '';
+  $('d_type').textContent = (r.type==='fund'?'صندوق':'سهم');
+  $('d_stats').innerHTML =
+    `الوحدات: <b>${fmt(r.units,0)}</b> • متوسط: <b>${fmt(r.avg_price)}</b> • آخر: <b>${fmt(r.last)}</b><br>`+
+    `القيمة: <b>${fmt(r.market_value)}</b> • الربح/الخسارة: <b class="${r.pnl>=0?'pos':'neg'}">${fmt(r.pnl)} (${pct(r.pnl_pct)})</b>`;
+  $('d_notes').textContent = r.notes || '—';
 
-  // إحصائيات سريعة
-  const lines = [
-    `الوحدات: ${fmt(r.units,0)}`,
-    `متوسط الشراء: ${fmt(r.avg_price)}`,
-    `آخر سعر: ${fmt(r.last)}`,
-    `القيمة السوقية: ${fmt(r.market_value)}`,
-    `الربح/الخسارة: ${fmt(r.pnl)} (${pct(r.pnl_pct)})`
-  ];
-  d_stats.innerHTML = lines.join(' • ');
-  d_notes.textContent = r.notes || '—';
-
-  // رسم حي عبر TradingView
-  // إعادة تهيئة الحاوية
-  const tvHost = document.getElementById('tv');
-  tvHost.innerHTML = '';
-  // خريطة الرمز إلى بورصة EGX
-  const tvSymbol = `EGX:${r.ticker.toUpperCase()}`;
+  // TradingView — إن كان صندوق قد لا يتوفر له رمز على EGX
   try{
+    $('tv').innerHTML = '';
     new TradingView.widget({
-      autosize: true,
-      symbol: tvSymbol,
-      interval: "60",
-      timezone: "Africa/Cairo",
-      theme: "dark",
-      style: "1",
-      locale: "ar",
-      container_id: "tv",
-      hide_top_toolbar: false,
-      allow_symbol_change: false
+      width: "100%", height: 300, symbol: "EGX:"+r.ticker,
+      interval: "60", timezone: "Africa/Cairo", theme: "dark",
+      style: "1", locale: "ar", container_id: "tv"
     });
-  }catch(e){ console.warn('TV error', e); }
-
-  // إظهار البطاقة
-  document.getElementById('details').style.display = 'block';
-  // تمرير للبطاقة
-  document.getElementById('details').scrollIntoView({behavior:'smooth', block:'start'});
+  }catch(e){}
+  $('details').style.display='block';
 }
 
-// تشغيل أولي
-document.addEventListener('DOMContentLoaded', boot);
+// لنداء من الرابط داخل الجدول
+window.openDetails = openDetails;
+
+boot();
 </script>
-</body></html>
