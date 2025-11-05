@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>قائمة الأسهم المقترحة قبل الإيداع</title>
+<style>
+:root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
+.container{max-width:1200px;margin:22px auto;padding:0 16px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.title{font-size:22px;font-weight:800}
+.chip{background:#14141b;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.input{background:#0f1016;border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:#fff}
+.select{background:#0f1016;border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:#fff}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:10px 14px;text-decoration:none;cursor:pointer}
+.grid{display:grid;gap:12px}
+.cards{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:#14141b;border:1px solid var(--border);border-radius:14px;padding:12px}
+.badge{display:inline-block;background:#101118;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:3px 10px;font-size:12px}
+.small{color:var(--muted);font-size:12px}
+.table{width:100%;border-collapse:collapse;background:#0f1016;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:10px}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
+.table th{background:#101118;color:#cbd5e1}
+.note{color:#cbd5e1;margin-top:8px}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+</style>
+<script src="https://s3.tradingview.com/tv.js"></script>
+</head><body>
+<div class="container">
+  <div class="header">
+    <div class="title">الأسهم المقترحة قبل الإيداع</div>
+    <div id="dt" class="chip">—</div>
+    <div style="margin-inline-start:auto" class="row">
+      <a class="btn" href="../">الرجوع للوحة</a>
+    </div>
+  </div>
+
+  <!-- شريط إعدادات الإيداع -->
+  <div class="card" style="margin-bottom:12px">
+    <div class="row">
+      <label>قيمة الإيداع (ج): <input id="cap" class="input" type="number" min="0" step="100" value="8000"></label>
+      <label>استراتيجية التوزيع:
+        <select id="mode" class="select">
+          <option value="equal">متساوي</option>
+          <option value="bias">حسب التصنيف</option>
+        </select>
+      </label>
+      <button id="recalc" class="btn">إعادة الحساب</button>
+      <button id="export" class="btn">تصدير CSV</button>
+    </div>
+    <div class="small note">* “حسب التصنيف” يوزّع وزنًا أعلى لأسهم «نمو/دوري/دفاعي» حسب كلمة <code>bias</code> في <code>watchlist.json</code>.</div>
+  </div>
+
+  <!-- بطاقات الأسهم -->
+  <div id="cards" class="grid cards"></div>
+
+  <!-- ملخص خطة الشراء -->
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:6px">خطة شراء مبدئية</div>
+    <table class="table" id="plan">
+      <thead><tr>
+        <th>السهم</th><th>التصنيف</th><th>تخصيص (ج)</th><th>سعر الشراء</th><th>الكمية</th><th>تكلفة تقديرية</th>
+      </tr></thead>
+      <tbody></tbody>
+      <tfoot><tr>
+        <th colspan="2">الإجمالي</th><th id="t_alloc">0</th><th></th><th id="t_qty">0</th><th id="t_cost">0</th>
+      </tr></tfoot>
+    </table>
+    <div class="small note">أدخل “سعر الشراء” لكل سهم لتظهر الكمية والتكلفة.</div>
+  </div>
+</div>
+
+<script>
+const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(n??0);
+
+// وزن تلقائي بناءً على bias (يمكن تعديل الأوزان بسهولة)
+function weightByBias(bias=""){
+  const b = bias.trim();
+  if(/نمو|growth/i.test(b)) return 1.2;
+  if(/دوري|cyc/i.test(b))  return 1.0;
+  if(/دفاعي|div|توزيع/i.test(b)) return 0.9;
+  return 1.0; // افتراضي
+}
+
+let WL=[], amount=8000, mode="equal";
+
+async function boot(){
+  document.getElementById('dt').textContent =
+    new Date().toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+  WL = await fetch('../data/watchlist.json?_=' + Date.now()).then(r=>r.json());
+  renderCards();
+  calc();
+  bind();
+}
+function bind(){
+  document.getElementById('cap').addEventListener('input', e=>{ amount=+e.target.value||0; calc(); });
+  document.getElementById('mode').addEventListener('change', e=>{ mode=e.target.value; calc(); });
+  document.getElementById('recalc').addEventListener('click', calc);
+  document.getElementById('export').addEventListener('click', exportCSV);
+}
+
+function renderCards(){
+  const wrap=document.getElementById('cards');
+  wrap.innerHTML = WL.map((x,i)=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div><span class="badge">${x.tkr}</span> <b>${x.name||''}</b></div>
+        <span class="badge">${x.bias||'—'}</span>
+      </div>
+      <div id="tv_${i}" style="height:200px;margin-top:8px;border-radius:10px;overflow:hidden"></div>
+      <div class="row" style="margin-top:8px">
+        <label>سعر الشراء (ج): <input class="input price" data-idx="${i}" type="number" step="0.01" min="0"></label>
+      </div>
+    </div>
+  `).join('');
+
+  // TradingView لكل سهم (رمز EGX:<TICKER>)
+  WL.forEach((x,i)=>{
+    try{
+      new TradingView.widget({
+        autosize: true, symbol: `EGX:${x.tkr}`, interval: "60",
+        timezone: "Africa/Cairo", theme: "dark", style: "1", locale: "ar",
+        container_id: `tv_${i}`
+      });
+    }catch(e){}
+  });
+
+  // ربط أسعار الإدخال لإعادة الحساب
+  document.querySelectorAll('.price').forEach(inp=>{
+    inp.addEventListener('input', calc);
+  });
+}
+
+function calc(){
+  // أوزان
+  let weights = WL.map(x=> mode==='equal' ? 1 : weightByBias(x.bias));
+  const sumW = weights.reduce((a,b)=>a+b,0) || 1;
+  const alloc = WL.map((_,i)=> amount * (weights[i]/sumW));
+
+  // ملخص جدولي
+  const tbody = document.querySelector('#plan tbody');
+  let tAlloc=0, tQty=0, tCost=0;
+  tbody.innerHTML = WL.map((x,i)=>{
+    const price = +document.querySelector(`.price[data-idx="${i}"]`)?.value || 0;
+    const qty = price>0 ? Math.floor(alloc[i]/price) : 0;
+    const cost = qty * price;
+    tAlloc += alloc[i]; tQty += qty; tCost += cost;
+    return `<tr>
+      <td><b>${x.tkr}</b></td>
+      <td>${x.bias||'—'}</td>
+      <td>${fmt(alloc[i])}</td>
+      <td>${price?fmt(price):'—'}</td>
+      <td>${qty?fmt(qty,0):'—'}</td>
+      <td>${cost?fmt(cost):'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('t_alloc').textContent = fmt(tAlloc);
+  document.getElementById('t_qty').textContent   = fmt(tQty,0);
+  document.getElementById('t_cost').textContent  = fmt(tCost);
+}
+
+function exportCSV(){
+  const rows=[["Ticker","Bias","Alloc_EGP","BuyPrice","Qty","Cost_EGP"]];
+  WL.forEach((x,i)=>{
+    const price = +document.querySelector(`.price[data-idx="${i}"]`)?.value || 0;
+    const weights = (mode==='equal'?1:weightByBias(x.bias));
+    const sumW = WL.reduce((a,b)=> a + (mode==='equal'?1:weightByBias(b.bias)), 0);
+    const alloc = amount * (weights/sumW);
+    const qty = price>0? Math.floor(alloc/price) : 0;
+    const cost = qty*price;
+    rows.push([x.tkr, x.bias||"", alloc.toFixed(2), price||"", qty||"", cost||""]);
+  });
+  const csv = rows.map(r=>r.join(",")).join("\n");
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'deposit_plan.csv';
+  a.click();
+}
+boot();
+</script>
+</body></html>
