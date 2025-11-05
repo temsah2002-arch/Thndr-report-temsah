@@ -1,136 +1,195 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+<!DOCTYPE html><html lang="ar" dir="rtl">
+<head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Thndr — التقرير اليومي</title>
+<title>التقرير اليومي — محفظة ثاندر</title>
+
+<!-- (اختياري) إن كان لديك ملف أنماط عام -->
+<link rel="stylesheet" href="../assets/ui.css">
+
 <style>
 :root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial}
-.container{max-width:1100px;margin:22px auto;padding:0 16px}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.title{font-size:24px;font-weight:800}.chip{padding:6px 12px;border-radius:12px;background:#14141b;border:1px solid var(--border);color:var(--muted)}
-.pills{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pill{background:#1f2937;border:1px solid #2b2f3a;color:#e5e7eb;border-radius:999px;padding:8px 12px;cursor:pointer}
-.card{background:#14141b;border:1px solid var(--border);border-radius:16px;padding:16px;margin:12px 0}
-.grid{display:grid;gap:12px}.two{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.stat{display:flex;justify-content:space-between;background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:12px}
-.table{width:100%;border-collapse:collapse;background:#0f1016;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
-.table th{background:#101118;color:#cbd5e1}.pos-good{color:var(--good)}.pos-bad{color:var(--bad)}
-.watch{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.wcard{background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:14px}
-.btn{background:var(--acc);color:#fff;border:0;border-radius:12px;padding:9px 12px;text-decoration:none}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
+.container{max-width:1200px;margin:22px auto;padding:0 16px}
+.header{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:12px}
+.title{font-size:26px;font-weight:800}
+.chip{background:var(--card);border:1px solid var(--border);color:#cbd5e1;padding:6px 12px;border-radius:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-block;background:var(--acc);color:#fff;border:0;border-radius:12px;padding:10px 14px;text-decoration:none}
+.btn--soft{background:#2e2f39}
+.grid{display:grid;gap:12px}.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+.stat{display:flex;justify-content:space-between;align-items:center;background:var(--soft);border:1px solid var(--border);border-radius:14px;padding:12px}
+.stat b{font-size:18px}
 .small{color:var(--muted);font-size:12px}
+.table{width:100%;border-collapse:collapse;background:var(--soft);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
+.table th{background:#101118;color:#cbd5e1}
+.pos{color:var(--good);font-weight:700}
+.neg{color:var(--bad);font-weight:700}
+.badge{display:inline-block;background:#101118;border:1px solid var(--border);color:#cbd5e1;border-radius:999px;padding:2px 10px;font-size:12px}
 </style>
-</head><body><div class="container">
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
   <div class="header">
     <div class="title">التقرير اليومي — محفظة ثاندر</div>
-    <div id="date" class="chip">—</div>
-  </div>
-
-  <div class="pills">
-    <a class="pill" href="../">الرجوع للـ Dashboard</a>
-    <button class="pill" onclick="goto('HOME')">الملخص</button>
-    <button class="pill" onclick="goto('WATCH')">قائمة المراقبة</button>
-    <button class="pill" onclick="goto('CALC')">حاسبة</button>
-  </div>
-
-  <!-- ملخص -->
-  <section id="HOME" class="card">
-    <div class="grid two" id="stats"></div>
-    <div class="card" style="padding:0;margin-top:10px">
-      <table class="table" id="pos"><thead>
-        <tr><th>السهم</th><th>الوحدات</th><th>متوسط</th><th>آخر</th><th>القيمة</th><th>الربح/الخسارة</th></tr>
-      </thead><tbody></tbody></table>
+    <div class="chip" id="asof">—</div>
+    <div class="toolbar" style="margin-inline-start:auto">
+      <a class="btn btn--soft" href="../">Dashboard</a>
+      <a class="btn btn--soft" href="#summary">الملخص</a>
+      <a class="btn btn--soft" href="../watchlist/">قائمة المراقبة</a>
+      <a class="btn" href="#CALC">حاسبة</a>
     </div>
-  </section>
+  </div>
 
-  <!-- مراقبة -->
-  <section id="WATCH" class="card" style="display:none">
-    <div class="watch" id="watch"></div>
-  </section>
+  <!-- Summary cards -->
+  <div id="summary" class="grid two">
+    <div class="card">
+      <div class="grid two">
+        <div class="stat"><span>قيمة استثماري</span><b id="pf_val">—</b></div>
+        <div class="stat"><span>تغير اليوم</span><b id="pf_day">—</b></div>
+      </div>
+      <div class="small" style="margin-top:8px">
+        الأرقام تُسحب من <code>data/portfolio.json</code> ويتم التحديث كل 5 دقائق.
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:6px">مؤشرات</div>
+      <div class="grid two">
+        <div class="stat"><span>EGX30</span><b id="egx30" class="pos">+0.00%</b></div>
+        <div class="stat"><span>EGX70</span><b id="egx70" class="neg">-0.00%</b></div>
+      </div>
+      <div class="stat" style="margin-top:8px"><span>الدولار</span><b id="usd">— ج</b></div>
+    </div>
+  </div>
 
-  <!-- الحاسبة -->
-  <section id="CALC" class="card" style="display:none">
+  <!-- Positions table -->
+  <div class="card" style="padding:0;margin-top:12px">
+    <table class="table" id="tbl">
+      <thead>
+        <tr>
+          <th>السهم</th>
+          <th>النوع</th>
+          <th>الوحدات</th>
+          <th>متوسط</th>
+          <th>آخر</th>
+          <th>القيمة</th>
+          <th>الربح/الخسارة</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr>
+          <th colspan="5">الإجمالي</th>
+          <th id="sum_mv">—</th>
+          <th id="sum_pnl">—</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Calculator anchor (يتم فتحها من نفس الصفحة أو صفحة التقرير الحالية) -->
+  <div id="CALC" class="card">
+    <div style="font-weight:700;margin-bottom:6px">حاسبة تداول سريعة</div>
     <div class="grid two">
-      <div>
-        <label class="small">سعر الدخول</label><input id="e" type="number" step="0.01" value="10" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff">
-        <label class="small" style="margin-top:8px;display:block">رأس المال (ج.م)</label><input id="cap" type="number" step="100" value="5000" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff">
-        <label class="small" style="margin-top:8px;display:block">نسبة المخاطرة %</label><input id="risk" type="number" step="0.5" value="1.5" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff">
-        <label class="small" style="margin-top:8px;display:block">وقف الخسارة</label><input id="s" type="number" step="0.01" value="9.2" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff">
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <div style="flex:1"><label class="small">هدف ١</label><input id="t1" type="number" step="0.01" value="11.2" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff"></div>
-          <div style="flex:1"><label class="small">هدف ٢</label><input id="t2" type="number" step="0.01" value="12" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff"></div>
-        </div>
-        <label class="small" style="margin-top:8px;display:block">عمولة إجمالي % (بيع+شراء)</label><input id="c" type="number" step="0.01" value="0.15" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff">
-        <label class="small" style="margin-top:8px;display:block">رسوم ثابتة (لكل جانب)</label><input id="f" type="number" step="1" value="0" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2b2f3a;background:#0b0c12;color:#fff">
-        <div style="margin-top:10px">
-          <button class="btn" onclick="calc()">احسب</button>
-          <a id="csv" class="btn" style="background:#475569" href="#">تصدير CSV</a>
-        </div>
-        <div id="out" style="margin-top:10px" class="small"></div>
-      </div>
-      <div class="small">يمكنك إرسال أي سهم من صفحة خطة الإيداع للحاسبة تلقائيًا.</div>
+      <label class="stat"><span>سعر الدخول</span><input id="c_entry" class="chip" type="number" step="0.01" style="min-width:120px"></label>
+      <label class="stat"><span>رأس المال (ج)</span><input id="c_cap" class="chip" type="number" step="1" value="5000" style="min-width:120px"></label>
     </div>
-  </section>
+    <div class="grid two" style="margin-top:8px">
+      <label class="stat"><span>مخاطرة %</span><input id="c_risk" class="chip" type="number" step="0.1" value="1.5" style="min-width:120px"></label>
+      <label class="stat"><span>هدف 1 (ج)</span><input id="c_t1" class="chip" type="number" step="0.01" style="min-width:120px"></label>
+    </div>
+    <div class="stat" style="margin-top:8px"><span>وحدات مقترحة</span><b id="c_units">—</b></div>
+    <div class="small">غيّر القيم بالأعلى وسيتم الحساب فورًا.</div>
+  </div>
 </div>
+
 <script>
-const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(n);
-const pct=n=>((n>=0?'+':'')+n.toFixed(2)+'%');
-function goto(id){['HOME','WATCH','CALC'].forEach(x=>document.getElementById(x).style.display=x===id?'block':'none');location.hash=id}
-async function load(){
-  const [p,w]=await Promise.all([
+const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
+const pct=(n)=>((n>=0?'+':'')+(+n).toFixed(2)+'%');
+const REFRESH_MS = 5*60*1000;
+
+async function loadAll(){
+  const [p, m] = await Promise.all([
     fetch('../data/portfolio.json?_='+Date.now()).then(r=>r.json()),
-    fetch('../data/watchlist.json?_='+Date.now()).then(r=>r.json())
+    fetch('../data/market.json?_='+Date.now()).then(r=>r.json()).catch(()=>({}))
   ]);
-  document.getElementById('date').textContent=new Date(p.as_of).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('stats').innerHTML=`
-    <div class="stat"><span>قيمة استثماري</span><b>${fmt(p.portfolio_value)}</b></div>
-    <div class="stat"><span>تغير اليوم</span><b class="${p.day_change>=0?'pos-good':'pos-bad'}">${fmt(p.day_change)} (${pct(p.day_change_pct)})</b></div>`;
-  document.querySelector('#pos tbody').innerHTML=p.positions.map(x=>`
-    <tr><td><b>${x.ticker}</b> — <span class="small">${x.name}</span></td>
-    <td>${fmt(x.units,0)}</td><td>${fmt(x.avg_price)}</td><td>${fmt(x.last)}</td>
-    <td>${fmt(x.market_value)}</td><td class="${x.pnl>=0?'pos-good':'pos-bad'}">${fmt(x.pnl)} (${pct(x.pnl_pct)})</td></tr>`).join('');
-  document.getElementById('watch').innerHTML=w.map(d=>`
-    <div class="wcard">
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
-        <div style="background:#1f2937;border:1px solid #2b2f3a;border-radius:999px;padding:2px 10px;font-weight:800">${d.tkr}</div>
-        <div style="font-weight:700">${d.name}</div>
-      </div>
-      <div class="small">التصنيف: <b>${d.bias||'-'}</b></div>
-      <div class="small">منطقة الدخول: <b>${d.zone||'-'}</b></div>
-      <div class="small">إيقاف: <b>${d.stop??'-'}</b> — أهداف: <b>${d.t1??'-'}/${d.t2??'-'}</b></div>
-      <div class="small" style="margin-top:6px">${d.thesis||''}</div>
-      <div style="margin-top:10px"><a class="btn" target="_blank" href="${d.link||'#'}">فتح على مباشر</a></div>
-    </div>`).join('');
+
+  // Header date
+  document.getElementById('asof').textContent =
+    new Date(p.as_of||Date.now()).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+
+  // Summary
+  document.getElementById('pf_val').textContent = fmt(p.portfolio_value);
+  const dy = +p.day_change||0, dyp = +p.day_change_pct||0;
+  const pfDay = document.getElementById('pf_day');
+  pfDay.innerHTML = `${fmt(dy)} (${pct(dyp)})`;
+  pfDay.className = dy>=0 ? 'pos' : 'neg';
+
+  // Indices
+  if(m && m.egx30) {
+    const e30=document.getElementById('egx30');
+    const e70=document.getElementById('egx70');
+    e30.textContent = pct(m.egx30.chg_pct||0); e30.className = (m.egx30.chg_pct>=0)?'pos':'neg';
+    e70.textContent = pct(m.egx70.chg_pct||0); e70.className = (m.egx70.chg_pct>=0)?'pos':'neg';
+    document.getElementById('usd').textContent = (m.usd_egp??0).toFixed(2)+' ج';
+  }
+
+  // Table
+  const rows = (p.positions||[]).map(x=>({
+    ticker:x.ticker, name:x.name||'', type:x.type||'stock',
+    units:+x.units||0, avg:+x.avg_price||0, last:+x.last||0,
+    mv:+x.market_value||((+x.last||0)*(+x.units||0)),
+    pnl:(x.pnl!=null)?+x.pnl:((+x.last - +x.avg_price)*(+x.units||0)),
+    pnl_pct:(x.pnl_pct!=null)?+x.pnl_pct:(((+x.last - +x.avg_price)/((+x.avg_price)||1))*100)
+  }));
+
+  const tb=document.querySelector('#tbl tbody');
+  tb.innerHTML = rows.map(r=>{
+    const cls = r.pnl>=0?'pos':'neg';
+    return `<tr>
+      <td><b>${r.ticker}</b> — <span class="small">${r.name}</span></td>
+      <td><span class="badge">${r.type==='fund'?'صندوق':'سهم'}</span></td>
+      <td>${fmt(r.units,0)}</td>
+      <td>${fmt(r.avg)}</td>
+      <td>${fmt(r.last)}</td>
+      <td>${fmt(r.mv)}</td>
+      <td class="${cls}">${fmt(r.pnl)} (${pct(r.pnl_pct)})</td>
+    </tr>`;
+  }).join('');
+
+  // Footer totals
+  const sum_mv = rows.reduce((a,b)=>a+b.mv,0);
+  const sum_pnl = rows.reduce((a,b)=>a+b.pnl,0);
+  document.getElementById('sum_mv').textContent = fmt(sum_mv);
+  const sumEl=document.getElementById('sum_pnl');
+  sumEl.textContent = fmt(sum_pnl);
+  sumEl.className = sum_pnl>=0?'pos':'neg';
 }
-function calc(){
-  const e=parseFloat(e_.value||e.value),cap=parseFloat(cap_.value||cap.value||5000),
-    risk=parseFloat(risk_.value||risk.value)/100,s=parseFloat(s_.value||s.value),
-    c=parseFloat(c_.value||c.value||0)/100,f=parseFloat(f_.value||f.value||0);
-  if([e,cap,risk,s].some(x=>isNaN(x)||x<=0)) return alert('تحقق من القيم');
-  const t1v=parseFloat(t1_.value||t1.value), t2v=parseFloat(t2_.value||t2.value);
-  const riskAmt=cap*risk, qty=Math.floor(riskAmt/Math.max(e-s,0.0001)), buy=qty*e,
-        sell1=qty*t1v, sell2=qty*t2v, feesBuy=buy*(c/2)+f, fees1=sell1*(c/2)+f, fees2=sell2*(c/2)+f,
-        net1=(sell1-buy)-(feesBuy+fees1), net2=(sell2-buy)-(feesBuy+fees2),
-        rr1=(t1v-e)/(e-s), rr2=(t2v-e)/(e-s);
-  out.innerHTML=`الكمية: <b>${fmt(qty,0)}</b> — تكلفة الشراء: <b>${fmt(buy)}</b> — صافي الربح: هدف١ <b>${fmt(net1)}</b> | هدف٢ <b>${fmt(net2)}</b> — R:R ≈ ${rr1.toFixed(2)} / ${rr2.toFixed(2)}`;
-  const csv=[['Entry',e],['Capital',cap],['Risk %',risk*100],['Stop',s],['Qty',qty],['Target1',t1v],['Net1',net1],['Target2',t2v],['Net2',net2]].map(r=>r.join(',')).join('\n');
-  csv_.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);csv_.download='calc.csv'; document.getElementById('csv').href=csv_.href;document.getElementById('csv').download='calc.csv';
+
+function bindCalc(){
+  const entry = document.getElementById('c_entry');
+  const cap = document.getElementById('c_cap');
+  const risk = document.getElementById('c_risk');
+  const t1 = document.getElementById('c_t1');
+  const out = document.getElementById('c_units');
+  const recalc=()=>{
+    const e=+entry.value||0, c=+cap.value||0, r=(+risk.value||0)/100;
+    const riskAmount = c*r;
+    const stop = e * (1 - r); // افتراض إيقاف عند نسبة المخاطرة من سعر الدخول
+    const perShareRisk = Math.max(e-stop, 0.01);
+    const units = perShareRisk>0 ? Math.floor(riskAmount / perShareRisk) : 0;
+    out.textContent = fmt(units,0);
+    if(!t1.value && e) t1.value = (e * 1.12).toFixed(2); // هدف افتراضي 12%
+  };
+  [entry,cap,risk,t1].forEach(el=>el.addEventListener('input',recalc));
+  recalc();
 }
-const e_=document.getElementById('e'),cap_=document.getElementById('cap'),risk_=document.getElementById('risk'),s_=document.getElementById('s'),t1_=document.getElementById('t1'),t2_=document.getElementById('t2'),c_=document.getElementById('c'),f_=document.getElementById('f');
-const csv_=document.createElement('a');load();goto(location.hash.replace('#','')||'HOME');
+
+loadAll();
+bindCalc();
+setInterval(loadAll, REFRESH_MS);
 </script>
-  <script>
-// قراءة قيم مرسلة من الخطة/الداشبورد وملء الحاسبة تلقائيًا
-(function(){
-  try{
-    const p = JSON.parse(sessionStorage.getItem('prefill')||'{}');
-    if(p && (p.e||p.stop||p.t1||p.t2)){
-      const set=(id,v)=>{const el=document.getElementById(id); if(el && v!=null && !Number.isNaN(v)) el.value=v;}
-      set('e',p.e); set('s',p.stop); set('t1',p.t1); set('t2',p.t2);
-      // افتح تبويب الحاسبة مباشرة
-      if(location.hash!=='#CALC'){ location.hash='CALC'; }
-      if(typeof calc==='function') setTimeout(calc,200);
-    }
-  }catch(e){}
-})();
-</script>
-</body></html>
+</body>
+</html>
