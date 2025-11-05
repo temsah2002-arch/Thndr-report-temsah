@@ -3,81 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تقرير محفظة ثاندر - ٤ نوفمبر ٢٠٢٥</title>
+<title>تقرير محفظة ثاندر</title>
 <style>
-  :root {
-    --bg:#0b0b0f;
-    --card:#14141b;
-    --text:#f3f4f6;
-    --muted:#a1a1aa;
-    --up:#16a34a;
-    --down:#ef4444;
-    --accent:#f59e0b;
-    --border:#22232b;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin:0; font-family: "Cairo", Tahoma, Arial, sans-serif; background:var(--bg); color:var(--text);
-    line-height:1.8;
-  }
-  .container { max-width: 980px; margin: 24px auto; padding: 0 16px; }
-  .header {
-    display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px;
-  }
-  .title { font-size: 28px; font-weight:800; }
-  .date-chip {
-    padding:6px 12px; background:var(--card); border:1px solid var(--border); border-radius:12px; color:var(--muted);
-  }
-  .card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:18px; margin:12px 0; }
-  .kpis { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
-  .kpi { background:#0f1016; border:1px solid var(--border); border-radius:14px; padding:14px; }
-  .kpi h4 { margin:0 0 6px; font-size:14px; color:var(--muted); }
-  .kpi .val { font-size:22px; font-weight:700; }
-  .pos-table { width:100%; border-collapse: collapse; overflow:hidden; border-radius:14px; }
-  .pos-table th, .pos-table td { padding:12px 10px; border-bottom:1px solid var(--border); text-align:right; }
-  .pos-table th { background:#101219; color:#cbd5e1; font-size:13px; }
-  .pos-table tr:hover td { background:#101018; }
-  .badge { padding:2px 8px; border-radius:999px; font-weight:700; font-size:12px; display:inline-block; }
-  .up { color:var(--up); background: rgba(22,163,74,0.12); }
-  .down { color:var(--down); background: rgba(239,68,68,0.12); }
-  .muted { color:var(--muted); }
-  .section-title { font-size:20px; margin:0 0 10px; }
-  .recs { display:grid; grid-template-columns:1fr; gap:10px; }
-  .rec { border:1px dashed var(--border); border-radius:12px; padding:12px 14px; background:#0f1016; }
-  .rec h4 { margin:0 0 6px; font-size:16px; }
-  .footer { text-align:center; color:var(--muted); padding:18px 6px; font-size:12px; }
-  .pill { background: #1f2937; color:#e5e7eb; border-radius:999px; padding:4px 10px; font-size:12px; }
-  @media (min-width:720px) { .recs { grid-template-columns: repeat(2, 1fr); } }
+  :root { --bg:#0b0b0f; --card:#14141b; --text:#f3f4f6; --muted:#a1a1aa;
+          --up:#16a34a; --down:#ef4444; --accent:#f59e0b; --border:#22232b; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.8}
+  .container{max-width:980px;margin:24px auto;padding:0 16px}
+  .header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+  .title{font-size:28px;font-weight:800}
+  .date-chip{padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin:12px 0}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .kpi{background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:14px}
+  .kpi h4{margin:0 0 6px;font-size:14px;color:var(--muted)}
+  .kpi .val{font-size:22px;font-weight:700}
+  .pos-table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:14px}
+  .pos-table th,.pos-table td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:right}
+  .pos-table th{background:#101219;color:#cbd5e1;font-size:13px}
+  .pos-table tr:hover td{background:#101018}
+  .badge{padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;display:inline-block}
+  .up{color:var(--up);background:rgba(22,163,74,.12)}
+  .down{color:var(--down);background:rgba(239,68,68,.12)}
+  .muted{color:var(--muted)}
+  .section-title{font-size:20px;margin:0 0 10px}
+  .recs{display:grid;grid-template-columns:1fr;gap:10px}
+  .rec{border:1px dashed var(--border);border-radius:12px;padding:12px 14px;background:#0f1016}
+  .rec h4{margin:0 0 6px;font-size:16px}
+  .footer{text-align:center;color:var(--muted);padding:18px 6px;font-size:12px}
+  .pill{background:#1f2937;color:#e5e7eb;border-radius:999px;padding:4px 10px;font-size:12px}
+  @media(min-width:720px){.recs{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <div class="title">تقرير محفظة ثاندر</div>
-      <div class="date-chip">التاريخ: ٤ نوفمبر ٢٠٢٥</div>
+      <div id="date-chip" class="date-chip">التاريخ: —</div>
     </div>
 
     <div class="card">
       <div class="kpis">
         <div class="kpi">
           <h4>إجمالي القيمة الاستثمارية</h4>
-          <div class="val">٧,٨٨٣٫٥٢ ج.م</div>
+          <div id="pf_val" class="val">—</div>
           <div class="muted">القيمة الحالية للمحفظة</div>
         </div>
         <div class="kpi">
           <h4>تغير اليوم</h4>
-          <div class="val"><span class="badge up">▲ +١٥٫٣٧ ج.م (+٠٫٢٠٪)</span></div>
+          <div class="val"><span id="day_badge" class="badge">—</span></div>
           <div class="muted">مقارنة بإغلاق أمس</div>
         </div>
         <div class="kpi">
           <h4>أفضل أداء اليوم</h4>
-          <div class="val"><span class="pill">COMI +١٫٣٢٪</span></div>
-          <div class="muted">البنك التجاري الدولي</div>
+          <div class="val"><span id="best-pill" class="pill">—</span></div>
+          <div id="best-name" class="muted">—</div>
         </div>
         <div class="kpi">
           <h4>أضعف أداء اليوم</h4>
-          <div class="val"><span class="pill">BSB −٤٫٢٠٪</span></div>
-          <div class="muted">بلتون سبائك</div>
+          <div class="val"><span id="worst-pill" class="pill">—</span></div>
+          <div id="worst-name" class="muted">—</div>
         </div>
       </div>
     </div>
@@ -94,43 +79,7 @@
             <th>ملحوظة</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>صندوق بريق (ABR)</td>
-            <td>١,٤٤٩٫٦٧ ج.م</td>
-            <td><span class="badge up">+٣٫٨٤</span></td>
-            <td><span class="up">+٠٫٢٧٪</span></td>
-            <td>اتجاه تصاعدي بطيء، مناسب للحفظ</td>
-          </tr>
-          <tr>
-            <td>بلتون مية مية (BMM)</td>
-            <td>٤,٠٣٢٫٩٦ ج.م</td>
-            <td><span class="badge up">+٢٦٫٤١</span></td>
-            <td><span class="up">+٠٫٦٦٪</span></td>
-            <td>جزء آمن من المحفظة</td>
-          </tr>
-          <tr>
-            <td>بلتون سبائك (BSB)</td>
-            <td>٤٣٧٫١١ ج.م</td>
-            <td><span class="badge down">−١٩٫١٦</span></td>
-            <td><span class="down">−٤٫٢٠٪</span></td>
-            <td>تراجع ملحوظ؛ يُفضل المراقبة</td>
-          </tr>
-          <tr>
-            <td>البنك التجاري الدولي (COMI)</td>
-            <td>١,١٧٧٫٠٠ ج.م</td>
-            <td><span class="badge up">+١٥٫٢٨</span></td>
-            <td><span class="up">+١٫٣٢٪</span></td>
-            <td>دعم قوي عند ١٠٥ ج.م</td>
-          </tr>
-          <tr>
-            <td>فوري (FWRY)</td>
-            <td>٧٨٦٫٧٨ ج.م</td>
-            <td><span class="badge down">−١١٫٠١</span></td>
-            <td><span class="down">−١٫٣٨٪</span></td>
-            <td>تذبذب؛ انتظار تأكيد فوق ١٤٫٨٠</td>
-          </tr>
-        </tbody>
+        <tbody id="pos-body"></tbody>
       </table>
     </div>
 
@@ -138,31 +87,92 @@
       <div class="section-title">التوصيات</div>
       <div class="recs">
         <div class="rec">
-          <h4>✅ احتفاظ: ABR - BMM - COMI</h4>
+          <h4 id="hold-line">✅ احتفاظ: —</h4>
           <div class="muted">اتجاه تصاعدي ثابت ومخاطرة منخفضة.</div>
         </div>
         <div class="rec">
-          <h4>🔍 مراقبة: BSB</h4>
-          <div class="muted">خسارة مؤقتة بعد صعود؛ احتمال ارتداد لاحقاً.</div>
-        </div>
-        <div class="rec">
-          <h4>⚠️ مراقبة دقيقة: FWRY</h4>
-          <div class="muted">شراء إضافي فقط بعد اختراق ١٤٫٨٠ ج.م بتداول جيد.</div>
+          <h4 id="watch-line">🔍 مراقبة: —</h4>
+          <div class="muted">مراكز بحاجة لمتابعة حسب حركة السوق.</div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">نظرة قصيرة المدى (اليومان القادمان)</div>
-      <ul>
-        <li>في حال استمرار صعود EGX، قد يتحسن أداء <b>FWRY</b> و<b>BSB</b>.</li>
-        <li>البيع الآن غير مفضل؛ السوق في مرحلة تذبذب مع دخول سيولة لصناديق بلتون.</li>
-      </ul>
-    </div>
-
-    <div class="footer">
-      أُعدّ التقرير اعتمادًا على بيانات تطبيق ثاندر المرفقة من المستخدم. &mdash; ٤ نوفمبر ٢٠٢٥
-    </div>
+    <div class="footer" id="footer-date">—</div>
   </div>
+
+<script>
+const fmt = (n,d=2)=> new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
+const pct = n => ( (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%' );
+
+async function loadReport(){
+  // حمّل البيانات
+  const pf = await fetch('../data/portfolio.json?_=' + Date.now()).then(r=>r.json());
+  let log = null;
+  try{
+    const j = await fetch('../data/daily_log.json?_=' + Date.now()).then(r=>r.json());
+    // entries قد تكون Array أو كائن؛ حوّلها لمصفوفة واختر الأحدث
+    let entries = [];
+    if (Array.isArray(j.entries)) entries = j.entries;
+    else entries = Object.entries(j.entries||{}).map(([date,obj])=>({date,...obj}));
+    log = entries.filter(e=>e.date).sort((a,b)=>new Date(b.date)-new Date(a.date))[0] || null;
+  }catch(e){ /* لا مشكلة، سنعتمد على portfolio.json */ }
+
+  // حدّث التاريخ في الشارة والعنوان والفوتر
+  const d = (log && log.date) || pf.as_of || new Date().toISOString().slice(0,10);
+  const human = new Date(d).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('date-chip').textContent = 'التاريخ: ' + human;
+  document.title = 'تقرير محفظة ثاندر - ' + human;
+  document.getElementById('footer-date').textContent = 'أُعدّ التقرير اعتمادًا على بيانات تطبيق ثاندر. — ' + human;
+
+  // KPIs
+  document.getElementById('pf_val').textContent = fmt(pf.portfolio_value) + ' ج.م';
+  const dayClass = (pf.day_change>=0)?'badge up':'badge down';
+  const dayText  = (pf.day_change>=0 ? '▲ ' : '▼ ') + fmt(pf.day_change) + ' (' + pct(pf.day_change_pct) + ')';
+  const dayBadge = document.getElementById('day_badge');
+  dayBadge.className = dayClass;
+  dayBadge.textContent = dayText;
+
+  // أفضل/أسوأ (من اللوج أو من المراكز)
+  const positions = pf.positions||[];
+  const byTicker = t=>positions.find(p=>p.ticker===t);
+  let bestTicker = log?.best_stock;
+  let worstTicker = log?.worst_stock;
+  if(!bestTicker || !worstTicker){
+    // احسب حسب نسبة الربح/الخسارة اليومية (pnl_pct)
+    const sorted = [...positions].sort((a,b)=> Number(b.pnl_pct||0) - Number(a.pnl_pct||0));
+    if(!bestTicker && sorted[0]) bestTicker = sorted[0].ticker;
+    if(!worstTicker && sorted[sorted.length-1]) worstTicker = sorted[sorted.length-1].ticker;
+  }
+  const best = byTicker(bestTicker) || {ticker:bestTicker||'—', name:'', pnl_pct:0};
+  const worst = byTicker(worstTicker) || {ticker:worstTicker||'—', name:'', pnl_pct:0};
+  document.getElementById('best-pill').textContent  = (best.ticker||'—') + ' ' + pct(best.pnl_pct||0);
+  document.getElementById('best-name').textContent  = best.name||'—';
+  document.getElementById('worst-pill').textContent = (worst.ticker||'—') + ' ' + pct(worst.pnl_pct||0);
+  document.getElementById('worst-name').textContent = worst.name||'—';
+
+  // جدول المراكز
+  const tbody = document.getElementById('pos-body');
+  tbody.innerHTML = positions.map(p=>{
+    const good = Number(p.pnl_pct)>=0;
+    return `
+      <tr>
+        <td>${p.name||''} (${p.ticker})</td>
+        <td>${fmt(p.market_value)} ج.م</td>
+        <td><span class="badge ${good?'up':'down'}">${good?'+':''}${fmt(p.pnl)}</span></td>
+        <td><span class="${good?'up':'down'}">${pct(p.pnl_pct)}</span></td>
+        <td>${good ? 'اتجاه تصاعدي/احتفاظ' : 'مراقبة وتحديد نقاط وقف'}</td>
+      </tr>`;
+  }).join('');
+
+  // توصيات بسيطة تلقائية (احتفاظ = الرابحين، مراقبة = الخاسرين)
+  const winners = positions.filter(p=>Number(p.pnl_pct)>=0).map(p=>p.ticker);
+  const losers  = positions.filter(p=>Number(p.pnl_pct)<0).map(p=>p.ticker);
+  document.getElementById('hold-line').textContent  = '✅ احتفاظ: ' + (winners.join(' - ') || '—');
+  document.getElementById('watch-line').textContent = '🔍 مراقبة: ' + (losers.join(' - ') || '—');
+}
+
+// ابدأ
+loadReport();
+</script>
 </body>
 </html>
