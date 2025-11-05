@@ -6,7 +6,8 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
 .container{max-width:1200px;margin:22px auto;padding:0 16px}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.title{font-size:26px;font-weight:800}.chip{background:#14141b;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:12px}
+.title{font-size:26px;font-weight:800}
+.chip{background:#14141b;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:12px}
 .grid{display:grid;gap:12px}.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
 .card{background:#14141b;border:1px solid var(--border);border-radius:16px;padding:16px}
 .stat{display:flex;justify-content:space-between;align-items:center;background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:12px}
@@ -16,33 +17,44 @@
 .table{width:100%;border-collapse:collapse;background:#0f1016;border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
 .table th{background:#101118;color:#cbd5e1}.pos-good{color:var(--good)}.pos-bad{color:var(--bad)}
+/* لونيْ صعود/هبوط لشريط السوق */
+.pos{color:var(--good);font-weight:700}
+.neg{color:var(--bad);font-weight:700}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://s3.tradingview.com/tv.js"></script>
-</head><body><div class="container">
-  <div class="header"><div class="title">لوحة ثاندر — Dashboard</div><div id="date" class="chip">—</div></div>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title">لوحة ثاندر — Dashboard</div>
+    <div id="date" class="chip">—</div>
+  </div>
 
   <div class="grid two">
     <div class="card">
       <div class="grid two" id="stats"></div>
-      <!-- 🟩 شريط السوق المباشر -->
-<div id="marketBar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-  <div class="stat" style="background:#0f1016;border-radius:8px;padding:6px 10px;flex:1;text-align:center;">
-    <b>EGX30:</b> <span id="egx30_val" class="pos">+0.85%</span>
-  </div>
-  <div class="stat" style="background:#0f1016;border-radius:8px;padding:6px 10px;flex:1;text-align:center;">
-    <b>EGX70:</b> <span id="egx70_val" class="neg">-0.22%</span>
-  </div>
-  <div class="stat" style="background:#0f1016;border-radius:8px;padding:6px 10px;flex:1;text-align:center;">
-    <b>الدولار:</b> <span id="usd_val">48.20 ج</span>
-  </div>
-</div>
-      <div style="margin-top:10px" class="linkrow">
+
+      <!-- شريط السوق -->
+      <div id="marketBar" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+        <div class="stat" style="flex:1;min-width:110px;text-align:center">
+          <b>EGX30:</b> <span id="egx30_val" class="pos">+0.00%</span>
+        </div>
+        <div class="stat" style="flex:1;min-width:110px;text-align:center">
+          <b>EGX70:</b> <span id="egx70_val" class="neg">-0.00%</span>
+        </div>
+        <div class="stat" style="flex:1;min-width:110px;text-align:center">
+          <b>الدولار:</b> <span id="usd_val">--.-- ج</span>
+        </div>
+      </div>
+
+      <div class="linkrow" style="margin-top:6px">
         <a class="btn" href="report/">التقرير اليومي</a>
         <a class="btn" href="plan/">خطة إيداع 24</a>
         <a class="btn" href="report/#CALC">حاسبة تداول</a>
       </div>
     </div>
+
     <div class="card">
       <div style="font-weight:700;margin-bottom:6px">توزيع المحفظة</div>
       <canvas id="alloc" height="280"></canvas>
@@ -63,82 +75,80 @@
     </table>
   </div>
 </div>
+
 <script>
 const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(n);
 const pct=n=>((n>=0?'+':'')+n.toFixed(2)+'%');
-async function boot(){
-  const p=await (await fetch('data/portfolio.json?_='+Date.now())).json();
-  document.getElementById('date').textContent=new Date(p.as_of).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
-  // إحصائيات
-  document.getElementById('stats').innerHTML=`
-    <div class="stat"><span>قيمة استثماري</span><b>${fmt(p.portfolio_value)}</b></div>
-    <div class="stat"><span>تغير اليوم</span><b class="${p.day_change>=0?'pos-good':'pos-bad'}">${fmt(p.day_change)} (${pct(p.day_change_pct)})</b></div>`;
-  // جدول
+const REFRESH_MS = 5*60*1000; // كل 5 دقائق
+
+async function renderAll(){
+  // portfolio
+  const p = await fetch('data/portfolio.json?_='+Date.now()).then(r=>r.json());
+  document.getElementById('date').textContent =
+    new Date(p.as_of).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+
+  // إحصائيات أعلى اليسار
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><span>قيمة استثماري</span><b id="pf_value">${fmt(p.portfolio_value)}</b></div>
+    <div class="stat"><span>تغير اليوم</span>
+      <b id="pf_day" class="${p.day_change>=0?'pos-good':'pos-bad'}">
+        ${fmt(p.day_change)} (${pct(p.day_change_pct)})
+      </b>
+    </div>`;
+
+  // جدول المراكز
   const tb=document.querySelector('#pos tbody');
-  tb.innerHTML=p.positions.map(x=>`
-    <tr><td><b>${x.ticker}</b> — <span class="small">${x.name}</span></td>
-    <td>${fmt(x.units,0)}</td><td>${fmt(x.avg_price)}</td><td>${fmt(x.last)}</td>
-    <td>${fmt(x.market_value)}</td>
-    <td class="${x.pnl>=0?'pos-good':'pos-bad'}">${fmt(x.pnl)} (${pct(x.pnl_pct)})</td></tr>`).join('');
-  // توزيع
+  tb.innerHTML = p.positions.map(x=>`
+    <tr>
+      <td><b>${x.ticker}</b> — <span class="small">${x.name}</span></td>
+      <td>${fmt(x.units,0)}</td>
+      <td>${fmt(x.avg_price)}</td>
+      <td>${fmt(x.last)}</td>
+      <td>${fmt(x.market_value)}</td>
+      <td class="${x.pnl>=0?'pos-good':'pos-bad'}">${fmt(x.pnl)} (${pct(x.pnl_pct)})</td>
+    </tr>`).join('');
+
+  // توزيع المحفظة
   const ctx=document.getElementById('alloc').getContext('2d');
   const labels=p.positions.map(x=>x.ticker), data=p.positions.map(x=>x.market_value);
   const total=data.reduce((a,b)=>a+b,0), per=data.map(v=>v/total*100);
-  new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,borderWidth:0}]},options:{plugins:{legend:{display:false}},cutout:'60%'}});
-  document.getElementById('allocLegend').innerHTML=labels.map((l,i)=>`${l}: ${fmt(per[i])}%`).join(' • ');
-  // EGX30
-  try{ new TradingView.widget({width:"100%",height:380,symbol:"EGX:EGX30",interval:"60",timezone:"Africa/Cairo",theme:"dark",style:"1",locale:"ar",container_id:"egx"}); }catch(e){}
+  if(window.allocChart) window.allocChart.destroy();
+  window.allocChart = new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,borderWidth:0}]},
+    options:{plugins:{legend:{display:false}},cutout:'60%'}});
+  document.getElementById('allocLegend').innerHTML =
+    labels.map((l,i)=>`${l}: ${fmt(per[i])}%`).join(' • ');
+
+  // شريط السوق
+  await updateMarketBar();
+
+  // رسم EGX30 (مرة واحدة)
+  if(!window.egxMounted && window.TradingView){
+    new TradingView.widget({
+      container_id:"egx", autosize:true, symbol:"EGX:EGX30",
+      interval:"60", timezone:"Africa/Cairo", theme:"dark", style:"1",
+      hide_top_toolbar:true, withdateranges:false, hide_legend:true, hide_volume:true, studies:[], locale:"ar"
+    });
+    window.egxMounted = true;
+  }
 }
-boot();
-  <script>
-/* ... كودك الحالي ... */
 
-let REFRESH_MS = 5 * 60 * 1000; // كل 5 دقائق
-
-async function refreshOnce(){
-  // أعد جلب الملفات وتحديث الأرقام بدون إعادة الرسم من الصفر
+async function updateMarketBar(){
   try{
-    const [p,market] = await Promise.all([
-      fetch('data/portfolio.json?_=' + Date.now()).then(r=>r.json()),
-      fetch('data/market.json?_=' + Date.now()).then(r=>r.json())
-    ]);
-    // شريط علوي
-    document.getElementById('tb_val').textContent = new Intl.NumberFormat('ar-EG').format(p.portfolio_value);
-    document.getElementById('tb_day').innerHTML =
-      `<span class="${p.day_change>=0?'pos':'neg'}">${new Intl.NumberFormat('ar-EG').format(p.day_change)} (${(p.day_change_pct>=0?'+':'') + p.day_change_pct.toFixed(2)}%)</span>`;
-    const egx30 = market?.egx30?.chg_pct ?? 0, egx70 = market?.egx70?.chg_pct ?? 0, usd = market?.usd_egp ?? 0;
-    document.getElementById('tb_mkt').innerHTML =
-      `EGX30 <span class="${egx30>=0?'pos':'neg'}">${(egx30>=0?'+':'')+egx30.toFixed(2)}%</span> • ` +
-      `EGX70 <span class="${egx70>=0?'pos':'neg'}">${(egx70>=0?'+':'')+egx70.toFixed(2)}%</span> • $ ${new Intl.NumberFormat('ar-EG').format(usd)}`;
-  }catch(e){}
-}
-
-function enableAutoRefresh(){
-  refreshOnce();                     // تحديث أولي
-  setInterval(refreshOnce, REFRESH_MS);
-}
-
-boot();
-enableAutoRefresh();
-</script>
-</script>
-  <script>
-async function updateMarket(){
-  try{
-    const r = await fetch('data/market.json?_=' + Date.now());
-    const j = await r.json();
-    const set = (id, val, pos)=> {
-      const el=document.getElementById(id);
+    const j = await fetch('data/market.json?_='+Date.now()).then(r=>r.json());
+    const set = (id, pct) => {
+      const el = document.getElementById(id);
       if(!el) return;
-      el.textContent = val;
-      el.className = pos>=0?'pos':'neg';
+      el.textContent = (pct>=0?'+':'') + Number(pct).toFixed(2) + '%';
+      el.className = pct>=0 ? 'pos' : 'neg';
     };
-    set('egx30_val', (j.egx30.chg_pct>=0?'+':'')+j.egx30.chg_pct.toFixed(2)+'%', j.egx30.chg_pct);
-    set('egx70_val', (j.egx70.chg_pct>=0?'+':'')+j.egx70.chg_pct.toFixed(2)+'%', j.egx70.chg_pct);
-    document.getElementById('usd_val').textContent = j.usd_egp.toFixed(2)+' ج';
-  }catch(e){console.warn('Market data error',e);}
+    set('egx30_val', j.egx30.chg_pct);
+    set('egx70_val', j.egx70.chg_pct);
+    const usd = document.getElementById('usd_val');
+    if(usd) usd.textContent = Number(j.usd_egp).toFixed(2) + ' ج';
+  }catch(e){ console.warn('market.json error', e); }
 }
-updateMarket();
-setInterval(updateMarket, 5*60*1000);
+
+renderAll();                  // أول تشغيل
+setInterval(renderAll, REFRESH_MS);  // تحديث دوري
 </script>
 </body></html>
