@@ -11,13 +11,13 @@
       "notes": "جلسة هادئة؛ سيولة ضعيفة قبل الإيداع الشهري."
     },
     {
-      "date": "2025-11-05",
-      "portfolio_value": 7883.52,
-      "day_change": 15.27,
-      "day_change_pct": 0.20,
-      "best_stock": "COMI",
-      "worst_stock": "BSB",
-      "notes": "تحسّن طفيف بقيادة البنك التجاري الدولي مع تراجع بيلتون سبائك."
+  "date": "2025-11-05",
+  "portfolio_value": 7850.49,
+  "day_change": -17.67,
+  "day_change_pct": -0.22,
+  "best_stock": "COMI",
+  "worst_stock": "BSB",
+  "notes": "جلسة سلبية طفيفة؛ أفضل أداء COMI (+1.22%)، أضعف BSB (-4.78%). يُفضّل مراقبة FWRY وBSB والاحتفاظ بـ ABR/BMM/COMI."
     }
-  ]
+    ]
 }
