@@ -8,7 +8,6 @@
   <!-- الستايل الموحد للمشروع -->
   <link rel="stylesheet" href="assets/ui.css">
 
-  <!-- (اختياري) تنسيقات خفيفة خاصة بهذه الصفحة فقط -->
   <style>
     :root{
       --bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;
@@ -31,6 +30,18 @@
     .table{width:100%;border-collapse:collapse;background:var(--soft);border:1px solid var(--border);border-radius:12px;overflow:hidden}
     .table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
     .table th{background:#101118;color:#cbd5e1}
+
+    /* === Modal === */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:999}
+    .modal{position:fixed;inset:0;display:none;place-items:center;z-index:1000}
+    .modal .box{width:min(560px,94vw);background:#14141b;border:1px solid #23242c;border-radius:16px;padding:16px}
+    .modal .row{display:flex;gap:8px;flex-wrap:wrap}
+    .modal label{display:block;font-size:12px;color:#a1a1aa;margin:8px 0 4px}
+    .modal input, .modal textarea{
+      width:100%;background:#0f1016;border:1px solid #23242c;border-radius:10px;color:#fff;padding:10px;font-family:inherit
+    }
+    .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    .modal.show, .modal-backdrop.show{display:grid}
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -42,15 +53,16 @@
     <div class="header">
       <div class="title">لوحة ثاندر — Dashboard</div>
       <div id="date" class="chip">—</div>
-<div class="toolbar">
-  <a class="btn" href="report/portfolio_report.html">📊 التقرير اليومي</a>
-  <a class="btn" href="plan/">💰 خطة إيداع 24</a>
-  <a class="btn btn--soft" href="report/#CALC">🧮 حاسبة تداول</a>
-</div>
+      <div class="toolbar">
+        <a class="btn" href="report/portfolio_report.html">📊 التقرير اليومي</a>
+        <a class="btn" href="plan/">💰 خطة إيداع 24</a>
+        <a class="btn btn--soft" href="report/#CALC">🧮 حاسبة تداول</a>
+      </div>
     </div>
 
     <!-- الصف الأول: ملخص + توزيع -->
     <div class="grid two">
+
       <!-- كارت الملخص وشريط السوق -->
       <div class="card">
         <div class="grid two" id="stats"></div>
@@ -62,16 +74,18 @@
           <span class="chip">الدولار: <b id="usd_val">—</b></span>
         </div>
 
-        <!-- روابط سريعة + زر التحديث -->
-<div class="row mt-8">
-  <a class="btn" href="report/">التقرير اليومي</a>
-  <a class="btn" href="plan/">خطة إيداع 24</a>
-  <a class="btn btn--soft" href="report/#CALC">حاسبة تداول</a>
+        <!-- روابط سريعة + أزرار التحديث -->
+        <div class="row mt-8">
+          <a class="btn" href="report/">التقرير اليومي</a>
+          <a class="btn" href="plan/">خطة إيداع 24</a>
+          <a class="btn btn--soft" href="report/#CALC">حاسبة تداول</a>
 
-  <!-- أزرار التحديث -->
-  <button class="btn" id="btnUpdate">🔄 تحديث اليوم</button>
-  <button class="btn btn--soft" id="btnToken">🔐 ضبط GitHub Token</button>
-</div>
+          <!-- أزرار الإدارة -->
+          <button class="btn btn--soft" id="btnEdit">✏️ تحرير اليوم</button>
+          <button class="btn" id="btnUpdate">🔄 تحديث اليوم</button>
+          <button class="btn btn--soft" id="btnToken">🔐 ضبط GitHub Token</button>
+        </div>
+      </div> <!-- إغلاق كارت الملخص -->
 
       <!-- كارت توزيع المحفظة -->
       <div class="card">
@@ -79,7 +93,8 @@
         <canvas id="alloc" height="280"></canvas>
         <div id="allocLegend" class="small" style="margin-top:6px"></div>
       </div>
-    </div>
+
+    </div> <!-- نهاية الصف الأول -->
 
     <!-- كارت EGX30 المباشر -->
     <div class="card">
@@ -93,29 +108,32 @@
       <table class="table" id="pos">
         <thead>
           <tr>
-            <th>السهم</th><th>الوحدات</th><th>متوسط</th><th>آخر</th>
-            <th>القيمة</th><th>الربح/الخسارة</th>
+            <th>السهم</th>
+            <th>الوحدات</th>
+            <th>متوسط</th>
+            <th>آخر</th>
+            <th>القيمة</th>
+            <th>الربح/الخسارة</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
     </div>
-  </div>
 
+  </div> <!-- نهاية الحاوية -->
+
+  <!-- سكربت التحليل الرئيسي -->
   <script>
     const fmt = (n,d=2)=> new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
-    const pct = n => ( (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%' );
+    const pct = n => ((n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%');
     const REFRESH_MS = 5*60*1000; // تحديث كل 5 دقائق
 
     async function renderAll(){
-      // بيانات المحفظة
       const p = await fetch('data/portfolio.json?_=' + Date.now()).then(r=>r.json());
-
-      // التاريخ
       document.getElementById('date').textContent =
         new Date(p.as_of||Date.now()).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
 
-      // الملخص العلوي
+      // الإحصاءات العلوية
       document.getElementById('stats').innerHTML = `
         <div class="kpi"><span>قيمة استثماري</span><b id="pf_value">${fmt(p.portfolio_value)}</b></div>
         <div class="kpi"><span>تغير اليوم</span>
@@ -151,7 +169,7 @@
       document.getElementById('allocLegend').innerHTML =
         labels.map((l,i)=>`${l}: ${fmt(per[i])}%`).join(' • ');
 
-      // مخطط EGX30 (مرة واحدة)
+      // مخطط EGX30
       if(!window.egxMounted && window.TradingView){
         new TradingView.widget({
           container_id:"egx", autosize:true, symbol:"EGX:EGX30",
@@ -162,7 +180,7 @@
         window.egxMounted = true;
       }
 
-      // شريط السوق
+      // تحديث شريط السوق
       await updateMarketBar();
     }
 
@@ -182,131 +200,226 @@
       }catch(e){ console.warn('market.json error', e); }
     }
 
-    // تشغيل وتحديث دوري
     renderAll();
     setInterval(renderAll, REFRESH_MS);
   </script>
-    <script>
-/* ========= إعدادات المخزن ========== */
-const GH = {
-  owner: "temsah2002-arch",             // اسم الحساب
-  repo:  "Thndr-report-temsah",         // اسم المستودع
-  branch:"main",                        // الفرع
-  paths: {
-    portfolio: "data/portfolio.json",
-    dailylog:  "data/daily_log.json"
-  }
-};
 
-/* ====== مساعدات عامة ====== */
-const b64 = s => btoa(unescape(encodeURIComponent(s)));
-const deB64 = s => decodeURIComponent(escape(atob(s)));
-
-/* قراءة/حفظ التوكن محليًا */
-function getToken(){ return localStorage.getItem("gh_token") || ""; }
-function setToken(t){ localStorage.setItem("gh_token", t.trim()); }
-
-/* جلب ملف من GitHub (API contents) */
-async function ghRead(path){
-  const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}?ref=${GH.branch}`;
-  const r = await fetch(url, {headers:{Accept:"application/vnd.github+json"}});
-  if(!r.ok) throw new Error("Read failed: "+path);
-  const j = await r.json();
-  return { sha:j.sha, text: deB64(j.content||"") };
-}
-
-/* كتابة ملف إلى GitHub */
-async function ghWrite(path, content, sha, message){
-  const token = getToken();
-  if(!token) throw new Error("NO_TOKEN");
-  const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}`;
-  const body = {
-    message,
-    content: b64(content),
-    sha,
-    branch: GH.branch
+  <!-- سكربت زر التحديث عبر GitHub + محرر اليوم -->
+  <script>
+  /* ========= إعدادات GitHub ========== */
+  const GH = {
+    owner:"temsah2002-arch",
+    repo:"Thndr-report-temsah",
+    branch:"main",
+    paths:{ portfolio:"data/portfolio.json", dailylog:"data/daily_log.json" }
   };
-  const r = await fetch(url, {
-    method:"PUT",
-    headers:{
-      "Accept":"application/vnd.github+json",
-      "Authorization":"Bearer "+token
-    },
-    body: JSON.stringify(body)
+  const b64=s=>btoa(unescape(encodeURIComponent(s)));
+  const deB64=s=>decodeURIComponent(escape(atob(s)));
+  function getToken(){return localStorage.getItem("gh_token")||"";}
+  function setToken(t){localStorage.setItem("gh_token",t.trim());}
+
+  async function ghRead(path){
+    const url=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}?ref=${GH.branch}`;
+    const r=await fetch(url,{headers:{Accept:"application/vnd.github+json"}});
+    if(!r.ok)throw new Error("Read failed: "+path);
+    const j=await r.json();
+    return {sha:j.sha,text:deB64(j.content||"")};
+  }
+  async function ghWrite(path,content,sha,message){
+    const token=getToken();
+    if(!token)throw new Error("NO_TOKEN");
+    const url=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}`;
+    const body={message,content:b64(content),sha,branch:GH.branch};
+    const r=await fetch(url,{
+      method:"PUT",
+      headers:{ "Accept":"application/vnd.github+json","Authorization":"Bearer "+token },
+      body:JSON.stringify(body)
+    });
+    if(!r.ok)throw new Error(await r.text());
+    return r.json();
+  }
+  function downloadFile(name,text){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+    a.download=name;a.click();
+  }
+
+  /* ============ محرر القيم (Modal) ============ */
+  const EDIT = { active:false, data:null };
+
+  function num(v){
+    if(typeof v!=='string') v = String(v??'');
+    const ar = '٠١٢٣٤٥٦٧٨٩';
+    v = v.replace(/[٠-٩]/g, d => ar.indexOf(d)).replace(/[^\d\.\-]/g,'');
+    const n = parseFloat(v); return isFinite(n) ? n : 0;
+  }
+  function isoDateOrToday(v){
+    // يعيد YYYY-MM-DD صحيحة أو تاريخ اليوم
+    const d = new Date(v||Date.now());
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+
+  async function openEditor(){
+    const pf = await fetch('data/portfolio.json?_='+Date.now()).then(r=>r.json()).catch(()=>({}));
+    const pos = pf.positions||[];
+    const best = pos.slice().sort((a,b)=>(b.pnl_pct||0)-(a.pnl_pct||0))[0]?.ticker || '';
+    const worst= pos.slice().sort((a,b)=>(a.pnl_pct||0)-(b.pnl_pct||0))[0]?.ticker || '';
+
+    document.getElementById('ed_date').value  = isoDateOrToday(pf.as_of);
+    document.getElementById('ed_val').value   = pf.portfolio_value ?? '';
+    document.getElementById('ed_chg').value   = pf.day_change ?? '';
+    document.getElementById('ed_pct').value   = pf.day_change_pct ?? '';
+    document.getElementById('ed_best').value  = best;
+    document.getElementById('ed_worst').value = worst;
+    document.getElementById('ed_notes').value = '';
+
+    document.getElementById('backdrop').classList.add('show');
+    document.getElementById('editor').classList.add('show');
+    EDIT.active = true;
+  }
+  function closeEditor(){
+    document.getElementById('editor').classList.remove('show');
+    document.getElementById('backdrop').classList.remove('show');
+    EDIT.active = false;
+  }
+  function saveEditor(){
+    const date  = isoDateOrToday(document.getElementById('ed_date').value);
+    const val   = num(document.getElementById('ed_val').value);
+    const chg   = num(document.getElementById('ed_chg').value);
+    let   pctV  = document.getElementById('ed_pct').value.trim();
+    let   pct   = pctV==='' ? null : num(pctV);
+    if(pct===null){ pct = (val!==0) ? (chg/Math.abs(val))*100 : 0; }
+    const best  = document.getElementById('ed_best').value.trim();
+    const worst = document.getElementById('ed_worst').value.trim();
+    const notes = document.getElementById('ed_notes').value.trim();
+
+    EDIT.data = { date, portfolio_value: val, day_change: chg, day_change_pct: pct, best_stock: best, worst_stock: worst, notes };
+    EDIT.active = false;
+    closeEditor();
+    alert('✅ تم حفظ القيم مؤقتًا. اضغط "تحديث اليوم" لكتابة القيم إلى JSON.');
+  }
+
+  document.getElementById('btnEdit').addEventListener('click', openEditor);
+  document.getElementById('btnToken').addEventListener('click', ()=>{
+    const t=prompt("أدخل GitHub Token (scope: repo) ليُحفظ محليًا:");
+    if(t) setToken(t);
+    alert(getToken()?"تم الحفظ ✅":"لم يتم الحفظ.");
   });
-  if(!r.ok){
-    const t = await r.text();
-    throw new Error("Write failed: "+t);
-  }
-  return r.json();
-}
 
-/* تنزيل ملف محليًا كخطة بديلة */
-function downloadFile(name, text){
-  const a=document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text],{type:'application/json'}));
-  a.download = name; a.click();
-}
+  async function doUpdate(){
+    const pf=await fetch('data/portfolio.json?_='+Date.now()).then(r=>r.json());
+    const logObj=await fetch('data/daily_log.json?_='+Date.now()).then(r=>r.json());
 
-/* بناء سجل اليوم + تحديث الملفين */
-async function doUpdate(){
-  // اقرأ ملفي JSON الحاليين
-  const pf = await fetch('data/portfolio.json?_='+Date.now()).then(r=>r.json());
-  const logObj = await fetch('data/daily_log.json?_='+Date.now()).then(r=>r.json());
-
-  // تحضير قيم اليوم من الـ portfolio.json (يمكن تعديلها قبل الحفظ)
-  const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
-  const best = (pf.positions||[]).slice().sort((a,b)=> (b.pnl_pct||0)-(a.pnl_pct||0))[0]?.ticker || "";
-  const worst= (pf.positions||[]).slice().sort((a,b)=> (a.pnl_pct||0)-(b.pnl_pct||0))[0]?.ticker || "";
-
-  const entry = {
-    date: today,
-    portfolio_value: +(pf.portfolio_value||0),
-    day_change: +(pf.day_change||0),
-    day_change_pct: +(pf.day_change_pct||0),
-    best_stock: best,
-    worst_stock: worst,
-    notes: "تحديث تلقائي من لوحة Thndr."
-  };
-
-  // حدث daily_log.json (إضافة أو استبدال نفس تاريخ اليوم)
-  const entries = Array.isArray(logObj.entries) ? logObj.entries : [];
-  const idx = entries.findIndex(e => e.date === today);
-  if(idx>=0) entries[idx] = entry; else entries.push(entry);
-  const newLog = JSON.stringify({as_of: today, entries}, null, 2);
-
-  // portfolio.json كما هو (أنت حدّثته من صور ثاندر بالفعل)
-  const newPf  = JSON.stringify(pf, null, 2);
-
-  // جرّب الكتابة المباشرة عبر GitHub؛ وإن فشلت (لا توكن) نزّل ملفين محليًا
-  try{
-    const pr = await ghRead(GH.paths.portfolio);
-    const lr = await ghRead(GH.paths.dailylog);
-
-    await ghWrite(GH.paths.portfolio, newPf, pr.sha, `chore: update portfolio ${today}`);
-    await ghWrite(GH.paths.dailylog,  newLog, lr.sha, `chore: append daily_log ${today}`);
-
-    alert("تم تحديث الملفين على GitHub ✅");
-    location.reload();
-  }catch(e){
-    if(e.message==="NO_TOKEN"){
-      alert("لا يوجد Token — سيتم تنزيل الملفين محليًا لاستبدالهما يدويًا.");
-    }else{
-      console.warn(e);
-      alert("تعذّر التحديث عبر GitHub — سيتم تنزيل الملفين محليًا.");
+    // استخدم قيم المحرر (إن وُجدت) وإلا اترك الحالية
+    const sessionDate = EDIT.data?.date || isoDateOrToday(pf.as_of);
+    if(EDIT.data){
+      pf.as_of           = sessionDate;
+      pf.portfolio_value = EDIT.data.portfolio_value;
+      pf.day_change      = EDIT.data.day_change;
+      pf.day_change_pct  = EDIT.data.day_change_pct;
     }
-    downloadFile("portfolio.json", newPf);
-    downloadFile("daily_log.json", newLog);
-  }
-}
 
-/* ربط الأزرار */
-document.getElementById('btnUpdate').addEventListener('click', doUpdate);
-document.getElementById('btnToken').addEventListener('click', ()=>{
-  const t = prompt("أدخل GitHub Token (scope: repo, workflow) — سيُحفظ محليًا:");
-  if(t) setToken(t);
-  alert(getToken() ? "تم الحفظ ✅" : "لم يتم الحفظ.");
-});
-</script>
+    // حساب أفضل/أسوأ
+    const pos = pf.positions||[];
+    const autoBest  = pos.slice().sort((a,b)=>(b.pnl_pct||0)-(a.pnl_pct||0))[0]?.ticker || '';
+    const autoWorst = pos.slice().sort((a,b)=>(a.pnl_pct||0)-(b.pnl_pct||0))[0]?.ticker || '';
+    const best  = (EDIT.data?.best_stock  || autoBest);
+    const worst = (EDIT.data?.worst_stock || autoWorst);
+
+    const entry = {
+      date: sessionDate,
+      portfolio_value: +pf.portfolio_value||0,
+      day_change: +pf.day_change||0,
+      day_change_pct: +pf.day_change_pct||0,
+      best_stock: best,
+      worst_stock: worst,
+      notes: (EDIT.data?.notes || "تحديث تلقائي من لوحة Thndr.")
+    };
+
+    // حدّث entries (استبدال يوم موجود أو إضافة جديد)
+    const entries = Array.isArray(logObj.entries) ? logObj.entries : [];
+    const idx = entries.findIndex(e => e.date === sessionDate);
+    if(idx>=0) entries[idx] = entry; else entries.push(entry);
+
+    const newLog = JSON.stringify({as_of: sessionDate, entries}, null, 2);
+    const newPf  = JSON.stringify(pf, null, 2);
+
+    try{
+      const pr=await ghRead(GH.paths.portfolio);
+      const lr=await ghRead(GH.paths.dailylog);
+      await ghWrite(GH.paths.portfolio,newPf,pr.sha,`update portfolio ${sessionDate}`);
+      await ghWrite(GH.paths.dailylog,newLog,lr.sha,`upsert daily_log ${sessionDate}`);
+      alert('✅ تم تحديث الملفين على GitHub');
+      location.reload();
+    }catch(e){
+      if(e.message.includes("NO_TOKEN")) alert("⚠️ لا يوجد Token — سيتم تنزيل الملفين يدويًا.");
+      else alert("⚠️ تعذّر التحديث على GitHub — سيتم تنزيل الملفين محليًا.");
+      downloadFile('portfolio.json', newPf);
+      downloadFile('daily_log.json', newLog);
+    }
+  }
+  document.getElementById('btnUpdate').addEventListener('click', doUpdate);
+  </script>
+
+  <!-- مودال التحرير -->
+  <div id="backdrop" class="modal-backdrop"></div>
+  <div id="editor" class="modal">
+    <div class="box">
+      <h3 style="margin:0 0 8px">تعديل بيانات جلسة اليوم</h3>
+
+      <div class="row">
+        <div style="flex:1 1 180px">
+          <label>تاريخ الجلسة (YYYY-MM-DD)</label>
+          <input id="ed_date" type="date" inputmode="none" placeholder="2025-11-05">
+        </div>
+        <div style="flex:1 1 180px">
+          <label>إجمالي المحفظة (portfolio_value)</label>
+          <input id="ed_val" type="text" inputmode="decimal" placeholder="مثال: 7850.49">
+        </div>
+        <div style="flex:1 1 180px">
+          <label>تغير اليوم (day_change)</label>
+          <input id="ed_chg" type="text" inputmode="decimal" placeholder="مثال: -17.67">
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1 1 180px">
+          <label>نسبة التغير % (day_change_pct)</label>
+          <input id="ed_pct" type="text" inputmode="decimal" placeholder="مثال: -0.22">
+        </div>
+        <div style="flex:1 1 180px">
+          <label>أفضل سهم (best_stock)</label>
+          <input id="ed_best" type="text" placeholder="COMI">
+        </div>
+        <div style="flex:1 1 180px">
+          <label>أضعف سهم (worst_stock)</label>
+          <input id="ed_worst" type="text" placeholder="BSB">
+        </div>
+      </div>
+
+      <label>ملاحظات (notes)</label>
+      <textarea id="ed_notes" rows="3" placeholder="ملاحظات الجلسة…"></textarea>
+
+      <div class="actions">
+        <button class="btn btn--soft" id="ed_cancel" onclick="(function(){document.getElementById('editor').classList.remove('show');document.getElementById('backdrop').classList.remove('show')})();">إلغاء</button>
+        <button class="btn" id="ed_save" onclick="(function(){const e=new Event('click');saveEditor();})();">حفظ القيم</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ربط أزرار المودال (بعد بناء العناصر)
+    function saveEditor(){ /* هذه تُعرّف في سكربت GitHub أعلاه */ }
+    // نعيد تعريف الربط الصحيح بعد تحميل الصفحة
+    window.addEventListener('DOMContentLoaded', ()=>{
+      // ربط أزرار المودال من الدوال المعرّفة أعلاه
+      document.getElementById('ed_save').onclick = function(){ saveEditor(); };
+      document.getElementById('ed_cancel').onclick = function(){
+        document.getElementById('editor').classList.remove('show');
+        document.getElementById('backdrop').classList.remove('show');
+      };
+    });
+  </script>
 </body>
 </html>
