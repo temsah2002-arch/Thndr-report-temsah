@@ -1,8 +1,8 @@
 {
   "as_of": "2025-11-05",
-  "portfolio_value": 7896.42,
-  "day_change": 28.26,
-  "day_change_pct": 0.36,
+  "portfolio_value": 7850.49,
+  "day_change": -17.67,
+  "day_change_pct": -0.22,
   "positions": [
     {
       "ticker": "ABR",
@@ -10,31 +10,31 @@
       "units": 8,
       "avg_price": 181.30,
       "last": 181.31,
-      "market_value": 1450.46,
-      "pnl": 4.64,
-      "pnl_pct": 0.32,
+      "market_value": 1451.25,
+      "pnl": 5.42,
+      "pnl_pct": 0.37,
       "type": "fund"
     },
     {
       "ticker": "BMM",
       "name": "صندوق بلتون مية مية",
-      "units": 2609,
+      "units": 2608,
       "avg_price": 1.53,
       "last": 1.55,
-      "market_value": 4045.92,
-      "pnl": 39.37,
-      "pnl_pct": 0.98,
+      "market_value": 4016.66,
+      "pnl": 10.11,
+      "pnl_pct": 0.25,
       "type": "fund"
     },
     {
       "ticker": "BSB",
       "name": "صندوق بلتون سبائك",
       "units": 3,
-      "avg_price": 147.40,
-      "last": 145.40,
-      "market_value": 436.26,
-      "pnl": -20.02,
-      "pnl_pct": -4.39,
+      "avg_price": 152.09,
+      "last": 145.00,
+      "market_value": 434.49,
+      "pnl": -21.79,
+      "pnl_pct": -4.78,
       "type": "fund"
     },
     {
@@ -42,23 +42,22 @@
       "name": "البنك التجاري الدولي",
       "units": 11,
       "avg_price": 105.61,
-      "last": 107.00,
-      "market_value": 1177.00,
-      "pnl": 15.29,
-      "pnl_pct": 1.32,
+      "last": 106.90,
+      "market_value": 1175.90,
+      "pnl": 14.18,
+      "pnl_pct": 1.22,
       "type": "stock"
     },
     {
       "ticker": "FWRY",
-      "name": "فوري لتكنولوجيا البنوك",
+      "name": "فوري لتكنولوجيا البنوك والمدفوعات",
       "units": 54,
-      "avg_price": 14.77,
-      "last": 14.57,
-      "market_value": 786.78,
-      "pnl": -10.80,
-      "pnl_pct": -1.35,
+      "avg_price": 14.20,
+      "last": 14.30,
+      "market_value": 772.20,
+      "pnl": -25.59,
+      "pnl_pct": -3.21,
       "type": "stock"
     }
-  ],
-  "note": "جلسة مستقرة، صعود طفيف في معظم الصناديق مع تحسن أداء COMI."
+  ]
 }
