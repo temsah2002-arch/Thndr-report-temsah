@@ -238,3 +238,54 @@ function doExport(){
 }
 
 function openDetails(tkr){
+  <script>
+function openDetails(tkr){
+  const r = DATA.find(x => String(x.ticker).toUpperCase() === String(tkr).toUpperCase());
+  if(!r) return;
+  // تعبئة العناوين
+  d_tkr.textContent = r.ticker;
+  d_name.textContent = r.name || '';
+  d_type.textContent = (r.type==='fund'?'صندوق':'سهم');
+
+  // إحصائيات سريعة
+  const lines = [
+    `الوحدات: ${fmt(r.units,0)}`,
+    `متوسط الشراء: ${fmt(r.avg_price)}`,
+    `آخر سعر: ${fmt(r.last)}`,
+    `القيمة السوقية: ${fmt(r.market_value)}`,
+    `الربح/الخسارة: ${fmt(r.pnl)} (${pct(r.pnl_pct)})`
+  ];
+  d_stats.innerHTML = lines.join(' • ');
+  d_notes.textContent = r.notes || '—';
+
+  // رسم حي عبر TradingView
+  // إعادة تهيئة الحاوية
+  const tvHost = document.getElementById('tv');
+  tvHost.innerHTML = '';
+  // خريطة الرمز إلى بورصة EGX
+  const tvSymbol = `EGX:${r.ticker.toUpperCase()}`;
+  try{
+    new TradingView.widget({
+      autosize: true,
+      symbol: tvSymbol,
+      interval: "60",
+      timezone: "Africa/Cairo",
+      theme: "dark",
+      style: "1",
+      locale: "ar",
+      container_id: "tv",
+      hide_top_toolbar: false,
+      allow_symbol_change: false
+    });
+  }catch(e){ console.warn('TV error', e); }
+
+  // إظهار البطاقة
+  document.getElementById('details').style.display = 'block';
+  // تمرير للبطاقة
+  document.getElementById('details').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// تشغيل أولي
+document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body></html>
