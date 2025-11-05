@@ -19,11 +19,11 @@
       "ticker": "ABR",
       "name": "صندوق بريق للاستثمار",
       "units": 200,
-      "avg_price": 100.0,
-      "last": 105.0,
+      "avg_price": 100,
+      "last": 105,
       "market_value": 21000,
       "pnl": 1000,
-      "pnl_pct": 5.0,
+      "pnl_pct": 5,
       "type": "fund"
     }
   ]
