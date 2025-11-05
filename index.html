@@ -1,158 +1,187 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Thndr — Dashboard</title>
-<style>
-:root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
-.container{max-width:1200px;margin:22px auto;padding:0 16px}
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.title{font-size:26px;font-weight:800}
-.chip{background:#14141b;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:12px}
-.grid{display:grid;gap:12px}.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
-.card{background:#14141b;border:1px solid var(--border);border-radius:16px;padding:16px}
-.stat{display:flex;justify-content:space-between;align-items:center;background:#0f1016;border:1px solid var(--border);border-radius:14px;padding:12px}
-.stat b{font-size:18px}.small{color:var(--muted);font-size:12px}
-.btn{display:inline-block;background:var(--acc);color:#fff;text-decoration:none;border:0;border-radius:12px;padding:10px 14px}
-.linkrow{display:flex;gap:8px;flex-wrap:wrap}
-.table{width:100%;border-collapse:collapse;background:#0f1016;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
-.table th{background:#101118;color:#cbd5e1}.pos-good{color:var(--good)}.pos-bad{color:var(--bad)}
-/* لونيْ صعود/هبوط لشريط السوق */
-.pos{color:var(--good);font-weight:700}
-.neg{color:var(--bad);font-weight:700}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://s3.tradingview.com/tv.js"></script>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thndr — Dashboard</title>
+
+  <!-- الستايل الموحد للمشروع -->
+  <link rel="stylesheet" href="assets/ui.css">
+
+  <!-- (اختياري) تنسيقات خفيفة خاصة بهذه الصفحة فقط -->
+  <style>
+    :root{
+      --bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;
+      --txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
+    .container{max-width:1200px;margin:22px auto;padding:0 16px}
+    .grid{display:grid;gap:12px}
+    .two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .small{color:var(--muted);font-size:12px}
+    .pos{color:var(--good);font-weight:700}
+    .neg{color:var(--bad);font-weight:700}
+    .card--noPad{padding:0}
+    .mt-8{margin-top:8px}
+    .mt-12{margin-top:12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .kpi{display:flex;justify-content:space-between;align-items:center;background:var(--soft);border:1px solid var(--border);border-radius:14px;padding:12px}
+    .kpi b{font-size:18px}
+    .table{width:100%;border-collapse:collapse;background:var(--soft);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
+    .table th{background:#101118;color:#cbd5e1}
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <div class="title">لوحة ثاندر — Dashboard</div>
-    <div id="date" class="chip">—</div>
-  </div>
+  <div class="container">
+    <!-- الهيدر -->
+    <div class="header">
+      <div class="title">لوحة ثاندر — Dashboard</div>
+      <div id="date" class="chip">—</div>
+      <div class="toolbar">
+        <a class="btn" href="report/">التقرير اليومي</a>
+        <a class="btn" href="plan/">خطة إيداع 24</a>
+        <a class="btn btn--soft" href="report/#CALC">حاسبة تداول</a>
+      </div>
+    </div>
 
-  <div class="grid two">
-    <div class="card">
-      <div class="grid two" id="stats"></div>
+    <!-- الصف الأول: ملخص + توزيع -->
+    <div class="grid two">
+      <!-- كارت الملخص وشريط السوق -->
+      <div class="card">
+        <div class="grid two" id="stats"></div>
 
-      <!-- شريط السوق -->
-      <div id="marketBar" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
-        <div class="stat" style="flex:1;min-width:110px;text-align:center">
-          <b>EGX30:</b> <span id="egx30_val" class="pos">+0.00%</span>
+        <!-- شريط السوق الحي -->
+        <div class="row mt-8">
+          <span class="chip">EGX30: <b id="egx30_val">—</b></span>
+          <span class="chip">EGX70: <b id="egx70_val">—</b></span>
+          <span class="chip">الدولار: <b id="usd_val">—</b></span>
         </div>
-        <div class="stat" style="flex:1;min-width:110px;text-align:center">
-          <b>EGX70:</b> <span id="egx70_val" class="neg">-0.00%</span>
-        </div>
-        <div class="stat" style="flex:1;min-width:110px;text-align:center">
-          <b>الدولار:</b> <span id="usd_val">--.-- ج</span>
+
+        <!-- روابط سريعة -->
+        <div class="row mt-8">
+          <a class="btn" href="report/">التقرير اليومي</a>
+          <a class="btn" href="plan/">خطة إيداع 24</a>
+          <a class="btn btn--soft" href="report/#CALC">حاسبة تداول</a>
         </div>
       </div>
 
-<div class="container">
-  <div class="header">
-    <div class="title">لوحة ثاندر — Dashboard</div>
-    <div id="date" class="chip">—</div>
-    <div class="toolbar">
-      <a class="btn" href="report/">التقرير اليومي</a>
-      <a class="btn" href="plan/">خطة إيداع 24</a>
-      <a class="btn btn--soft" href="report/#CALC">حاسبة تداول</a>
+      <!-- كارت توزيع المحفظة -->
+      <div class="card">
+        <div class="small" style="font-weight:700;margin-bottom:6px">توزيع المحفظة</div>
+        <canvas id="alloc" height="280"></canvas>
+        <div id="allocLegend" class="small" style="margin-top:6px"></div>
+      </div>
     </div>
-  </div>
 
+    <!-- كارت EGX30 المباشر -->
     <div class="card">
-      <div style="font-weight:700;margin-bottom:6px">توزيع المحفظة</div>
-      <canvas id="alloc" height="280"></canvas>
-      <div id="allocLegend" class="small" style="margin-top:6px"></div>
+      <div class="small" style="font-weight:700;margin-bottom:6px">EGX30 — مباشر</div>
+      <div id="egx" style="height:380px"></div>
+      <div class="small">إن لم يظهر الرسم جرّب شبكة أخرى أو افتحه من المتصفح مباشرة.</div>
+    </div>
+
+    <!-- جدول المراكز -->
+    <div class="card card--noPad mt-12">
+      <table class="table" id="pos">
+        <thead>
+          <tr>
+            <th>السهم</th><th>الوحدات</th><th>متوسط</th><th>آخر</th>
+            <th>القيمة</th><th>الربح/الخسارة</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
-  <div class="card">
-    <div style="font-weight:700;margin-bottom:6px">EGX30 — مباشر</div>
-    <div id="egx" style="height:380px"></div>
-    <div class="small">إن لم يظهر الرسم جرّب شبكة أخرى أو افتحه من المتصفح مباشرة.</div>
-  </div>
+  <script>
+    const fmt = (n,d=2)=> new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(+n||0);
+    const pct = n => ( (n>=0?'+':'') + (Number(n)||0).toFixed(2) + '%' );
+    const REFRESH_MS = 5*60*1000; // تحديث كل 5 دقائق
 
-  <div class="card" style="padding:0;margin-top:12px">
-    <table class="table" id="pos">
-      <thead><tr><th>السهم</th><th>الوحدات</th><th>متوسط</th><th>آخر</th><th>القيمة</th><th>الربح/الخسارة</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-<link rel="stylesheet" href="assets/ui.css">
-<script>
-const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(n);
-const pct=n=>((n>=0?'+':'')+n.toFixed(2)+'%');
-const REFRESH_MS = 5*60*1000; // كل 5 دقائق
+    async function renderAll(){
+      // بيانات المحفظة
+      const p = await fetch('data/portfolio.json?_=' + Date.now()).then(r=>r.json());
 
-async function renderAll(){
-  // portfolio
-  const p = await fetch('data/portfolio.json?_='+Date.now()).then(r=>r.json());
-  document.getElementById('date').textContent =
-    new Date(p.as_of).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+      // التاريخ
+      document.getElementById('date').textContent =
+        new Date(p.as_of||Date.now()).toLocaleDateString('ar-EG',{day:'numeric',month:'long',year:'numeric'});
 
-  // إحصائيات أعلى اليسار
-  document.getElementById('stats').innerHTML = `
-    <div class="stat"><span>قيمة استثماري</span><b id="pf_value">${fmt(p.portfolio_value)}</b></div>
-    <div class="stat"><span>تغير اليوم</span>
-      <b id="pf_day" class="${p.day_change>=0?'pos-good':'pos-bad'}">
-        ${fmt(p.day_change)} (${pct(p.day_change_pct)})
-      </b>
-    </div>`;
+      // الملخص العلوي
+      document.getElementById('stats').innerHTML = `
+        <div class="kpi"><span>قيمة استثماري</span><b id="pf_value">${fmt(p.portfolio_value)}</b></div>
+        <div class="kpi"><span>تغير اليوم</span>
+          <b id="pf_day" class="${p.day_change>=0?'pos':'neg'}">
+            ${fmt(p.day_change)} (${pct(p.day_change_pct)})
+          </b>
+        </div>`;
 
-  // جدول المراكز
-  const tb=document.querySelector('#pos tbody');
-  tb.innerHTML = p.positions.map(x=>`
-    <tr>
-      <td><b>${x.ticker}</b> — <span class="small">${x.name}</span></td>
-      <td>${fmt(x.units,0)}</td>
-      <td>${fmt(x.avg_price)}</td>
-      <td>${fmt(x.last)}</td>
-      <td>${fmt(x.market_value)}</td>
-      <td class="${x.pnl>=0?'pos-good':'pos-bad'}">${fmt(x.pnl)} (${pct(x.pnl_pct)})</td>
-    </tr>`).join('');
+      // جدول المراكز
+      const tb = document.querySelector('#pos tbody');
+      tb.innerHTML = (p.positions||[]).map(x=>`
+        <tr>
+          <td><b>${x.ticker}</b> — <span class="small">${x.name||''}</span></td>
+          <td>${fmt(x.units,0)}</td>
+          <td>${fmt(x.avg_price)}</td>
+          <td>${fmt(x.last)}</td>
+          <td>${fmt(x.market_value)}</td>
+          <td class="${x.pnl>=0?'pos':'neg'}">${fmt(x.pnl)} (${pct(x.pnl_pct)})</td>
+        </tr>`).join('');
 
-  // توزيع المحفظة
-  const ctx=document.getElementById('alloc').getContext('2d');
-  const labels=p.positions.map(x=>x.ticker), data=p.positions.map(x=>x.market_value);
-  const total=data.reduce((a,b)=>a+b,0), per=data.map(v=>v/total*100);
-  if(window.allocChart) window.allocChart.destroy();
-  window.allocChart = new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,borderWidth:0}]},
-    options:{plugins:{legend:{display:false}},cutout:'60%'}});
-  document.getElementById('allocLegend').innerHTML =
-    labels.map((l,i)=>`${l}: ${fmt(per[i])}%`).join(' • ');
+      // توزيع المحفظة
+      const labels = (p.positions||[]).map(x=>x.ticker);
+      const data   = (p.positions||[]).map(x=>+x.market_value||0);
+      const total  = data.reduce((a,b)=>a+b,0)||1;
+      const per    = data.map(v=> v/total*100);
 
-  // شريط السوق
-  await updateMarketBar();
+      if(window.allocChart) window.allocChart.destroy();
+      window.allocChart = new Chart(document.getElementById('alloc').getContext('2d'),{
+        type:'doughnut',
+        data:{labels, datasets:[{data, borderWidth:0}]},
+        options:{plugins:{legend:{display:false}}, cutout:'60%'}
+      });
+      document.getElementById('allocLegend').innerHTML =
+        labels.map((l,i)=>`${l}: ${fmt(per[i])}%`).join(' • ');
 
-  // رسم EGX30 (مرة واحدة)
-  if(!window.egxMounted && window.TradingView){
-    new TradingView.widget({
-      container_id:"egx", autosize:true, symbol:"EGX:EGX30",
-      interval:"60", timezone:"Africa/Cairo", theme:"dark", style:"1",
-      hide_top_toolbar:true, withdateranges:false, hide_legend:true, hide_volume:true, studies:[], locale:"ar"
-    });
-    window.egxMounted = true;
-  }
-}
+      // مخطط EGX30 (مرة واحدة)
+      if(!window.egxMounted && window.TradingView){
+        new TradingView.widget({
+          container_id:"egx", autosize:true, symbol:"EGX:EGX30",
+          interval:"60", timezone:"Africa/Cairo", theme:"dark", style:"1",
+          hide_top_toolbar:true, withdateranges:false, hide_legend:true,
+          hide_volume:true, studies:[], locale:"ar"
+        });
+        window.egxMounted = true;
+      }
 
-async function updateMarketBar(){
-  try{
-    const j = await fetch('data/market.json?_='+Date.now()).then(r=>r.json());
-    const set = (id, pct) => {
-      const el = document.getElementById(id);
-      if(!el) return;
-      el.textContent = (pct>=0?'+':'') + Number(pct).toFixed(2) + '%';
-      el.className = pct>=0 ? 'pos' : 'neg';
-    };
-    set('egx30_val', j.egx30.chg_pct);
-    set('egx70_val', j.egx70.chg_pct);
-    const usd = document.getElementById('usd_val');
-    if(usd) usd.textContent = Number(j.usd_egp).toFixed(2) + ' ج';
-  }catch(e){ console.warn('market.json error', e); }
-}
+      // شريط السوق
+      await updateMarketBar();
+    }
 
-renderAll();                  // أول تشغيل
-setInterval(renderAll, REFRESH_MS);  // تحديث دوري
-</script>
-</body></html>
+    async function updateMarketBar(){
+      try{
+        const j = await fetch('data/market.json?_=' + Date.now()).then(r=>r.json());
+        const set = (id, val)=>{
+          const el = document.getElementById(id);
+          if(!el) return;
+          el.textContent = (val>=0?'+':'') + Number(val||0).toFixed(2) + '%';
+          el.className = val>=0 ? 'pos' : 'neg';
+        };
+        set('egx30_val', j?.egx30?.chg_pct ?? 0);
+        set('egx70_val', j?.egx70?.chg_pct ?? 0);
+        const usd = document.getElementById('usd_val');
+        if(usd) usd.textContent = Number(j?.usd_egp ?? 0).toFixed(2) + ' ج';
+      }catch(e){ console.warn('market.json error', e); }
+    }
+
+    // تشغيل وتحديث دوري
+    renderAll();
+    setInterval(renderAll, REFRESH_MS);
+  </script>
+</body>
+</html>
