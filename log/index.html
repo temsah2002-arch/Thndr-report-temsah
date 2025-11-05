@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سجل التداول اليومي</title>
+<style>
+:root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial}
+.container{max-width:1100px;margin:22px auto;padding:0 14px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.title{font-size:22px;font-weight:800}.chip{background:#14141b;border:1px solid var(--border);color:#a1a1aa;padding:6px 10px;border-radius:10px}
+.card{background:#14141b;border:1px solid var(--border);border-radius:14px;padding:14px;margin:10px 0}
+.table{width:100%;border-collapse:collapse;background:#0f1016;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px}
+.table th{background:#101118;color:#cbd5e1}
+.grid{display:grid;gap:12px}.two{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.small{color:#a1a1aa}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head><body>
+<div class="container">
+  <div class="header">
+    <div class="title">سجل التداول اليومي</div>
+    <div id="meta" class="chip">—</div>
+  </div>
+
+  <div class="card">
+    <canvas id="plChart" height="260"></canvas>
+    <div class="small" id="summary"></div>
+  </div>
+
+  <div class="card" style="padding:0">
+    <table class="table" id="log">
+      <thead><tr>
+        <th>التاريخ</th><th>قيمة المحفظة</th><th>تغيير اليوم</th><th>%</th><th>أفضل</th><th>أسوأ</th><th>ملاحظات</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card small">
+    لإضافة يوم جديد: عدّل ملف <code>data/daily_log.json</code> وأضف عنصرًا داخل <code>entries</code>.  
+    يمكنني توليده لك تلقائيًا عندما ترسل لقطة الشاشة بعد الجلسة.
+  </div>
+
+  <div><a href="../" class="small">⬅ الرجوع للوحة</a></div>
+</div>
+
+<script>
+const fmt=(n,d=2)=>new Intl.NumberFormat('ar-EG',{maximumFractionDigits:d}).format(n);
+async function boot(){
+  const j = await fetch('../data/daily_log.json?_='+Date.now()).then(r=>r.json());
+  document.getElementById('meta').textContent = 'آخر تحديث: ' + (j.as_of||'—');
+
+  const rows = (j.entries||[]).sort((a,b)=> (a.date>b.date?1:-1));
+  const tbody = document.querySelector('#log tbody');
+  tbody.innerHTML = rows.map(r=>{
+    const cls = (r.day_change||0)>=0?'pos':'neg';
+    return `<tr>
+      <td>${r.date}</td>
+      <td>${fmt(r.portfolio_value)}</td>
+      <td class="${cls}">${fmt(r.day_change)}</td>
+      <td class="${cls}">${(r.day_change_pct>=0?'+':'') + Number(r.day_change_pct).toFixed(2)}%</td>
+      <td>${r.best_stock||'—'}</td>
+      <td>${r.worst_stock||'—'}</td>
+      <td>${r.notes||''}</td>
+    </tr>`
+  }).join('');
+
+  // ملخص سريع
+  const dps = rows.map(r=>Number(r.day_change_pct)||0);
+  const wins = dps.filter(x=>x>0).length, losses = dps.filter(x=>x<0).length;
+  const avg = dps.length? dps.reduce((a,b)=>a+b,0)/dps.length : 0;
+  document.getElementById('summary').innerHTML =
+    `عدد الأيام: <b>${rows.length}</b> • ربح: <b class="pos">${wins}</b> • خسارة: <b class="neg">${losses}</b> • متوسط يومي: <b>${avg.toFixed(2)}%</b>`;
+
+  // رسم P/L%
+  const ctx = document.getElementById('plChart').getContext('2d');
+  new Chart(ctx,{
+    type:'bar',
+    data:{ labels: rows.map(r=>r.date), datasets:[{ label:'% اليوم', data: dps }] },
+    options:{ plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>v+'%'}}}}
+  });
+}
+boot();
+</script>
+</body></html>
