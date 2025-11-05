@@ -25,6 +25,18 @@
   <div class="grid two">
     <div class="card">
       <div class="grid two" id="stats"></div>
+      <!-- 🟩 شريط السوق المباشر -->
+<div id="marketBar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+  <div class="stat" style="background:#0f1016;border-radius:8px;padding:6px 10px;flex:1;text-align:center;">
+    <b>EGX30:</b> <span id="egx30_val" class="pos">+0.85%</span>
+  </div>
+  <div class="stat" style="background:#0f1016;border-radius:8px;padding:6px 10px;flex:1;text-align:center;">
+    <b>EGX70:</b> <span id="egx70_val" class="neg">-0.22%</span>
+  </div>
+  <div class="stat" style="background:#0f1016;border-radius:8px;padding:6px 10px;flex:1;text-align:center;">
+    <b>الدولار:</b> <span id="usd_val">48.20 ج</span>
+  </div>
+</div>
       <div style="margin-top:10px" class="linkrow">
         <a class="btn" href="report/">التقرير اليومي</a>
         <a class="btn" href="plan/">خطة إيداع 24</a>
@@ -109,5 +121,24 @@ function enableAutoRefresh(){
 boot();
 enableAutoRefresh();
 </script>
+</script>
+  <script>
+async function updateMarket(){
+  try{
+    const r = await fetch('data/market.json?_=' + Date.now());
+    const j = await r.json();
+    const set = (id, val, pos)=> {
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.textContent = val;
+      el.className = pos>=0?'pos':'neg';
+    };
+    set('egx30_val', (j.egx30.chg_pct>=0?'+':'')+j.egx30.chg_pct.toFixed(2)+'%', j.egx30.chg_pct);
+    set('egx70_val', (j.egx70.chg_pct>=0?'+':'')+j.egx70.chg_pct.toFixed(2)+'%', j.egx70.chg_pct);
+    document.getElementById('usd_val').textContent = j.usd_egp.toFixed(2)+' ج';
+  }catch(e){console.warn('Market data error',e);}
+}
+updateMarket();
+setInterval(updateMarket, 5*60*1000);
 </script>
 </body></html>
