@@ -62,13 +62,16 @@
           <span class="chip">الدولار: <b id="usd_val">—</b></span>
         </div>
 
-        <!-- روابط سريعة -->
-        <div class="row mt-8">
-          <a class="btn" href="report/">التقرير اليومي</a>
-          <a class="btn" href="plan/">خطة إيداع 24</a>
-          <a class="btn btn--soft" href="report/#CALC">حاسبة تداول</a>
-        </div>
-      </div>
+        <!-- روابط سريعة + زر التحديث -->
+<div class="row mt-8">
+  <a class="btn" href="report/">التقرير اليومي</a>
+  <a class="btn" href="plan/">خطة إيداع 24</a>
+  <a class="btn btn--soft" href="report/#CALC">حاسبة تداول</a>
+
+  <!-- أزرار التحديث -->
+  <button class="btn" id="btnUpdate">🔄 تحديث اليوم</button>
+  <button class="btn btn--soft" id="btnToken">🔐 ضبط GitHub Token</button>
+</div>
 
       <!-- كارت توزيع المحفظة -->
       <div class="card">
@@ -183,5 +186,127 @@
     renderAll();
     setInterval(renderAll, REFRESH_MS);
   </script>
+    <script>
+/* ========= إعدادات المخزن ========== */
+const GH = {
+  owner: "temsah2002-arch",             // اسم الحساب
+  repo:  "Thndr-report-temsah",         // اسم المستودع
+  branch:"main",                        // الفرع
+  paths: {
+    portfolio: "data/portfolio.json",
+    dailylog:  "data/daily_log.json"
+  }
+};
+
+/* ====== مساعدات عامة ====== */
+const b64 = s => btoa(unescape(encodeURIComponent(s)));
+const deB64 = s => decodeURIComponent(escape(atob(s)));
+
+/* قراءة/حفظ التوكن محليًا */
+function getToken(){ return localStorage.getItem("gh_token") || ""; }
+function setToken(t){ localStorage.setItem("gh_token", t.trim()); }
+
+/* جلب ملف من GitHub (API contents) */
+async function ghRead(path){
+  const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}?ref=${GH.branch}`;
+  const r = await fetch(url, {headers:{Accept:"application/vnd.github+json"}});
+  if(!r.ok) throw new Error("Read failed: "+path);
+  const j = await r.json();
+  return { sha:j.sha, text: deB64(j.content||"") };
+}
+
+/* كتابة ملف إلى GitHub */
+async function ghWrite(path, content, sha, message){
+  const token = getToken();
+  if(!token) throw new Error("NO_TOKEN");
+  const url = `https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}`;
+  const body = {
+    message,
+    content: b64(content),
+    sha,
+    branch: GH.branch
+  };
+  const r = await fetch(url, {
+    method:"PUT",
+    headers:{
+      "Accept":"application/vnd.github+json",
+      "Authorization":"Bearer "+token
+    },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){
+    const t = await r.text();
+    throw new Error("Write failed: "+t);
+  }
+  return r.json();
+}
+
+/* تنزيل ملف محليًا كخطة بديلة */
+function downloadFile(name, text){
+  const a=document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  a.download = name; a.click();
+}
+
+/* بناء سجل اليوم + تحديث الملفين */
+async function doUpdate(){
+  // اقرأ ملفي JSON الحاليين
+  const pf = await fetch('data/portfolio.json?_='+Date.now()).then(r=>r.json());
+  const logObj = await fetch('data/daily_log.json?_='+Date.now()).then(r=>r.json());
+
+  // تحضير قيم اليوم من الـ portfolio.json (يمكن تعديلها قبل الحفظ)
+  const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  const best = (pf.positions||[]).slice().sort((a,b)=> (b.pnl_pct||0)-(a.pnl_pct||0))[0]?.ticker || "";
+  const worst= (pf.positions||[]).slice().sort((a,b)=> (a.pnl_pct||0)-(b.pnl_pct||0))[0]?.ticker || "";
+
+  const entry = {
+    date: today,
+    portfolio_value: +(pf.portfolio_value||0),
+    day_change: +(pf.day_change||0),
+    day_change_pct: +(pf.day_change_pct||0),
+    best_stock: best,
+    worst_stock: worst,
+    notes: "تحديث تلقائي من لوحة Thndr."
+  };
+
+  // حدث daily_log.json (إضافة أو استبدال نفس تاريخ اليوم)
+  const entries = Array.isArray(logObj.entries) ? logObj.entries : [];
+  const idx = entries.findIndex(e => e.date === today);
+  if(idx>=0) entries[idx] = entry; else entries.push(entry);
+  const newLog = JSON.stringify({as_of: today, entries}, null, 2);
+
+  // portfolio.json كما هو (أنت حدّثته من صور ثاندر بالفعل)
+  const newPf  = JSON.stringify(pf, null, 2);
+
+  // جرّب الكتابة المباشرة عبر GitHub؛ وإن فشلت (لا توكن) نزّل ملفين محليًا
+  try{
+    const pr = await ghRead(GH.paths.portfolio);
+    const lr = await ghRead(GH.paths.dailylog);
+
+    await ghWrite(GH.paths.portfolio, newPf, pr.sha, `chore: update portfolio ${today}`);
+    await ghWrite(GH.paths.dailylog,  newLog, lr.sha, `chore: append daily_log ${today}`);
+
+    alert("تم تحديث الملفين على GitHub ✅");
+    location.reload();
+  }catch(e){
+    if(e.message==="NO_TOKEN"){
+      alert("لا يوجد Token — سيتم تنزيل الملفين محليًا لاستبدالهما يدويًا.");
+    }else{
+      console.warn(e);
+      alert("تعذّر التحديث عبر GitHub — سيتم تنزيل الملفين محليًا.");
+    }
+    downloadFile("portfolio.json", newPf);
+    downloadFile("daily_log.json", newLog);
+  }
+}
+
+/* ربط الأزرار */
+document.getElementById('btnUpdate').addEventListener('click', doUpdate);
+document.getElementById('btnToken').addEventListener('click', ()=>{
+  const t = prompt("أدخل GitHub Token (scope: repo, workflow) — سيُحفظ محليًا:");
+  if(t) setToken(t);
+  alert(getToken() ? "تم الحفظ ✅" : "لم يتم الحفظ.");
+});
+</script>
 </body>
 </html>
