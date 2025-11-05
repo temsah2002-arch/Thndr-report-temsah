@@ -1,30 +1,64 @@
 {
-  "as_of": "2025-11-04",
-  "portfolio_value": 783052,
-  "day_change": 1537,
-  "day_change_pct": 0.20,
+  "as_of": "2025-11-05",
+  "portfolio_value": 7896.42,
+  "day_change": 28.26,
+  "day_change_pct": 0.36,
   "positions": [
-    {
-      "ticker": "TMGH",
-      "name": "طلعت مصطفى القابضة",
-      "units": 500,
-      "avg_price": 32.5,
-      "last": 34.1,
-      "market_value": 17050,
-      "pnl": 800,
-      "pnl_pct": 4.9,
-      "type": "stock"
-    },
     {
       "ticker": "ABR",
       "name": "صندوق بريق للاستثمار",
-      "units": 200,
-      "avg_price": 100,
-      "last": 105,
-      "market_value": 21000,
-      "pnl": 1000,
-      "pnl_pct": 5,
+      "units": 8,
+      "avg_price": 181.30,
+      "last": 181.31,
+      "market_value": 1450.46,
+      "pnl": 4.64,
+      "pnl_pct": 0.32,
       "type": "fund"
+    },
+    {
+      "ticker": "BMM",
+      "name": "صندوق بلتون مية مية",
+      "units": 2609,
+      "avg_price": 1.53,
+      "last": 1.55,
+      "market_value": 4045.92,
+      "pnl": 39.37,
+      "pnl_pct": 0.98,
+      "type": "fund"
+    },
+    {
+      "ticker": "BSB",
+      "name": "صندوق بلتون سبائك",
+      "units": 3,
+      "avg_price": 147.40,
+      "last": 145.40,
+      "market_value": 436.26,
+      "pnl": -20.02,
+      "pnl_pct": -4.39,
+      "type": "fund"
+    },
+    {
+      "ticker": "COMI",
+      "name": "البنك التجاري الدولي",
+      "units": 11,
+      "avg_price": 105.61,
+      "last": 107.00,
+      "market_value": 1177.00,
+      "pnl": 15.29,
+      "pnl_pct": 1.32,
+      "type": "stock"
+    },
+    {
+      "ticker": "FWRY",
+      "name": "فوري لتكنولوجيا البنوك",
+      "units": 54,
+      "avg_price": 14.77,
+      "last": 14.57,
+      "market_value": 786.78,
+      "pnl": -10.80,
+      "pnl_pct": -1.35,
+      "type": "stock"
     }
-  ]
+  ],
+  "note": "جلسة مستقرة، صعود طفيف في معظم الصناديق مع تحسن أداء COMI."
 }
