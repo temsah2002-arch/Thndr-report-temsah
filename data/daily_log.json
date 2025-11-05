@@ -8,16 +8,16 @@
       "day_change_pct": 0.20,
       "best_stock": "TMGH",
       "worst_stock": "EGAL",
-      "notes": "جلسة هادئة، سيولة ضعيفة قبل الإيداع الشهري."
+      "notes": "جلسة هادئة؛ سيولة ضعيفة قبل الإيداع الشهري."
     },
     {
       "date": "2025-11-05",
-      "portfolio_value": 7881.52,
-      "day_change": 13.37,
-      "day_change_pct": 0.17,
-      "best_stock": "BMM",
+      "portfolio_value": 7883.52,
+      "day_change": 15.27,
+      "day_change_pct": 0.20,
+      "best_stock": "COMI",
       "worst_stock": "BSB",
-      "notes": "تحسن طفيف بصناديق العائد الثابت مع تراجع بلتون سبائك."
+      "notes": "تحسّن طفيف بقيادة البنك التجاري الدولي مع تراجع بيلتون سبائك."
     }
   ]
 }
