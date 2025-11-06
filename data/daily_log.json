@@ -19,5 +19,17 @@
       "worst_stock": "BSB",
       "notes": "تحديث تلقائي من لوحة Thndr."
     }
+ {
+  "as_of": "2025-11-06",
+  "entries": [
+    {
+      "date": "2025-11-06",
+      "portfolio_value": 8011.25,
+      "day_change": -17.67,
+      "day_change_pct": -0.22,
+      "best_stock": "COMI",
+      "worst_stock": "BSB",
+      "notes": "تم بيع فوري عند 14.77 للسهم، المحفظة مستقرة مع تعزيز محتمل لـ COMI و BMM الأسبوع القادم."
+    }
   ]
 }
