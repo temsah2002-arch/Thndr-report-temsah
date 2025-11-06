@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تحليل أسهم التداول — Thndr</title>
+<link rel="stylesheet" href="../assets/ui.css">
+<style>
+  :root{--bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;--txt:#f3f4f6;--muted:#a1a1aa;--good:#22c55e;--bad:#ef4444;--acc:#0ea5e9}
+  body{background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif}
+  .container{max-width:1100px;margin:22px auto;padding:0 16px}
+  .grid{display:grid;gap:12px}
+  .two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
+  .muted{color:var(--muted)}
+  .small{font-size:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .input{background:var(--soft);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--txt);width:100%}
+  .input:focus{outline:none;border-color:#2a2f3a}
+  label{font-size:12px;color:var(--muted)}
+  .tbl{width:100%;border-collapse:collapse;background:var(--soft);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .tbl th,.tbl td{padding:10px;border-bottom:1px solid var(--border);text-align:right}
+  .tbl th{background:#101118;color:#cbd5e1;font-size:13px}
+  .pill{padding:2px 8px;border-radius:999px;font-weight:700;font-size:12px;display:inline-block}
+  .up{color:var(--good);background:rgba(34,197,94,.12)}
+  .dn{color:var(--bad);background:rgba(239,68,68,.12)}
+  .btn--ghost{background:transparent;border:1px dashed var(--border)}
+</style>
+<script src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+<div class="container">
+
+  <div class="row" style="justify-content:space-between">
+    <div class="title">تحليل أسهم التداول</div>
+    <div class="row">
+      <a class="btn" href="../index.html">🏠 الداشبورد</a>
+      <a class="btn" href="./portfolio_report.html">📊 التقرير اليومي</a>
+    </div>
+  </div>
+
+  <!-- نموذج الإدخال -->
+  <div class="card">
+    <div class="grid two">
+      <div>
+        <label>رمز السهم (Ticker)</label>
+        <input class="input" id="ticker" placeholder="COMI / ABR / BMM ..." />
+      </div>
+      <div>
+        <label>اسم الشركة</label>
+        <input class="input" id="name" placeholder="البنك التجاري الدولي" />
+      </div>
+      <div>
+        <label>منطقة الشراء — من</label>
+        <input type="number" step="0.01" class="input" id="buyFrom" placeholder="مثال: 115.00" />
+      </div>
+      <div>
+        <label>منطقة الشراء — إلى</label>
+        <input type="number" step="0.01" class="input" id="buyTo" placeholder="مثال: 118.00" />
+      </div>
+      <div>
+        <label>وقف الخسارة (SL)</label>
+        <input type="number" step="0.01" class="input" id="sl" placeholder="مثال: 110.00" />
+      </div>
+      <div>
+        <label>الهدف (TP)</label>
+        <input type="number" step="0.01" class="input" id="tp" placeholder="مثال: 130.00" />
+      </div>
+      <div>
+        <label>نسبة المخاطرة من رأس المال %</label>
+        <input type="number" step="0.1" class="input" id="riskPct" value="1.0" />
+      </div>
+      <div>
+        <label>رأس المال (ج.م)</label>
+        <input type="number" step="0.01" class="input" id="capital" value="10000" />
+      </div>
+      <div style="grid-column:1/-1">
+        <label>ملاحظات</label>
+        <input class="input" id="note" placeholder="نقطة دعم/مقاومة، خبر، سيولة..." />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnCalc">🧮 حساب</button>
+      <button class="btn" id="btnAdd">➕ إضافة للقائمة</button>
+      <button class="btn btn--soft" id="btnTV">📈 فتح الرسم</button>
+      <button class="btn btn--soft" id="btnSave">💾 حفظ إلى GitHub</button>
+      <button class="btn btn--ghost" id="btnDownload">⬇️ تنزيل JSON</button>
+      <label class="btn btn--soft" for="fileUp">📤 استيراد JSON</label>
+      <input id="fileUp" type="file" accept="application/json" style="display:none">
+    </div>
+
+    <!-- نتائج الحساب -->
+    <div class="row" id="calcBox" style="margin-top:10px;display:none">
+      <div class="pill up" id="rr">R/R: —</div>
+      <div class="pill" id="riskValue" style="background:#1f2937">قيمة المخاطرة: —</div>
+      <div class="pill" id="qty" style="background:#1f2937">عدد الوحدات: —</div>
+      <div class="pill" id="breakeven" style="background:#1f2937">نقطة التعادل: —</div>
+      <div class="pill" id="exp" style="background:#1f2937">العائد المتوقع: —</div>
+    </div>
+  </div>
+
+  <!-- الرسم البياني -->
+  <div class="card">
+    <div class="small muted" style="margin-bottom:6px">TradingView — EGX</div>
+    <div id="tv" style="height:420px"></div>
+  </div>
+
+  <!-- الجدول -->
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="section-title">قائمة الأسهم المرشحة</div>
+      <div class="small muted">المصدر: data/watchlist.json</div>
+    </div>
+    <table class="tbl" id="tbl">
+      <thead>
+        <tr>
+          <th>السهم</th><th>منطقة الشراء</th><th>SL</th><th>TP</th>
+          <th>R/R</th><th>مخاطرة ج.م</th><th>Qty</th><th>ملاحظة</th><th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+/* ======= إعدادات المستودع (نفس الداشبورد) ======= */
+const GH = { owner:"temsah2002-arch", repo:"Thndr-report-temsah", branch:"main",
+  paths:{ watch:"data/watchlist.json" } };
+const b64 = s => btoa(unescape(encodeURIComponent(s)));
+const deB64 = s => decodeURIComponent(escape(atob(s)));
+const getToken = ()=> localStorage.getItem("gh_token") || "";
+/* قراءة/كتابة GitHub */
+async function ghRead(path){
+  const url=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}?ref=${GH.branch}`;
+  const r=await fetch(url,{headers:{Accept:"application/vnd.github+json"}}); if(!r.ok) throw new Error("read failed");
+  const j=await r.json(); return {sha:j.sha, text:deB64(j.content||"")};
+}
+async function ghWrite(path,content,sha,message){
+  const token=getToken(); if(!token) throw new Error("NO_TOKEN");
+  const url=`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${path}`;
+  const body={message, content:b64(content), sha, branch:GH.branch};
+  const r=await fetch(url,{method:"PUT",headers:{Accept:"application/vnd.github+json","Authorization":"Bearer "+token},body:JSON.stringify(body)});
+  if(!r.ok){ throw new Error(await r.text()); }
+  return r.json();
+}
+
+/* ========== البيانات المحلية ========== */
+let LIST = { items: [] };
+
+/* تحميل watchlist.json */
+async function loadList(){
+  try{
+    LIST = await fetch('../data/watchlist.json?_='+Date.now()).then(r=>r.json());
+    if(!Array.isArray(LIST.items)) LIST.items=[];
+  }catch{ LIST = {items:[]} }
+  renderTable();
+}
+
+/* رسم الجدول */
+function renderTable(){
+  const tb=document.querySelector('#tbl tbody');
+  tb.innerHTML = (LIST.items||[]).map((x,i)=>{
+    const rr = ((x.tp-x.buy_to)/(x.buy_to-x.sl)).toFixed(2);
+    const riskValue = ((+x.risk_pct||1)/100*(+x.capital||0));
+    const qty = Math.max(0, Math.floor(riskValue/Math.max(0.01,(x.buy_to-x.sl))));
+    return `<tr>
+      <td><b>${x.ticker}</b><br><span class="small muted">${x.name||''}</span></td>
+      <td>${fmt(x.buy_from)} – ${fmt(x.buy_to)}</td>
+      <td>${fmt(x.sl)}</td>
+      <td>${fmt(x.tp)}</td>
+      <td><span class="pill ${rr>=2?'up':'dn'}">${rr}</span></td>
+      <td>${fmt(riskValue)}</td>
+      <td>${qty}</td>
+      <td class="small">${x.note||''}</td>
+      <td><button class="btn btn--soft" onclick="editItem(${i})">✏️</button>
+          <button class="btn btn--ghost" onclick="delItem(${i})">🗑️</button></td>
+    </tr>`;
+  }).join('');
+}
+function fmt(n){return new Intl.NumberFormat('ar-EG',{maximumFractionDigits:2}).format(+n||0)}
+
+/* حساب المقاييس */
+function calc(){
+  const buyFrom=+g('buyFrom'), buyTo=+g('buyTo'), sl=+g('sl'), tp=+g('tp');
+  const riskPct=+g('riskPct'), capital=+g('capital');
+  if(!buyTo||!sl||buyTo<=sl){ alert('تحقق من منطقة الشراء ووقف الخسارة'); return; }
+  const riskPerShare = buyTo - sl;
+  const rr = (tp - buyTo) / riskPerShare;
+  const riskValue = (riskPct/100)*capital;
+  const qty = Math.max(0, Math.floor(riskValue/Math.max(0.01,riskPerShare)));
+  const exp = qty*(tp-buyTo);
+  const be = buyTo; // simplification
+  S('calcBox').style.display='flex';
+  S('rr').textContent = 'R/R: ' + rr.toFixed(2);
+  S('riskValue').textContent = 'قيمة المخاطرة: ' + fmt(riskValue);
+  S('qty').textContent = 'عدد الوحدات: ' + qty;
+  S('breakeven').textContent = 'نقطة التعادل: ' + fmt(be);
+  S('exp').textContent = 'العائد المتوقع: ' + fmt(exp);
+}
+function add(){
+  const item = {
+    ticker: g('ticker').toUpperCase().trim(),
+    name: g('name'),
+    buy_from:+g('buyFrom'), buy_to:+g('buyTo'),
+    sl:+g('sl'), tp:+g('tp'),
+    risk_pct:+g('riskPct'), capital:+g('capital'),
+    note:g('note')
+  };
+  if(!item.ticker||!item.buy_to||!item.sl){ alert('أدخل رمز السهم، الشراء، ووقف الخسارة.'); return; }
+  const i = LIST.items.findIndex(x=>x.ticker===item.ticker);
+  if(i>=0) LIST.items[i]=item; else LIST.items.push(item);
+  renderTable(); alert('تم الحفظ مؤقتًا — لا تنسَ حفظ JSON.');
+}
+function editItem(i){
+  const x=LIST.items[i];
+  set('ticker',x.ticker); set('name',x.name||''); set('buyFrom',x.buy_from);
+  set('buyTo',x.buy_to); set('sl',x.sl); set('tp',x.tp);
+  set('riskPct',x.risk_pct); set('capital',x.capital); set('note',x.note||'');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function delItem(i){ LIST.items.splice(i,1); renderTable(); }
+
+/* حفظ */
+async function saveGH(){
+  try{
+    const {sha} = await ghRead(GH.paths.watch);
+    const json = JSON.stringify(LIST,null,2);
+    await ghWrite(GH.paths.watch, json, sha, 'chore: update watchlist');
+    alert('تم الحفظ على GitHub ✅');
+  }catch(e){
+    if(String(e).includes('NO_TOKEN')){ alert('اضبط الـToken من الداشبورد أولًا.'); }
+    else{ console.warn(e); alert('تعذر الحفظ على GitHub.'); }
+  }
+}
+function download(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(LIST,null,2)],{type:'application/json'}));
+  a.download='watchlist.json'; a.click();
+}
+function upload(file){
+  const fr=new FileReader(); fr.onload=()=>{
+    try{ LIST = JSON.parse(fr.result); if(!Array.isArray(LIST.items)) LIST.items=[]; renderTable(); }
+    catch{ alert('صيغة ملف غير صالحة'); }
+  }; fr.readAsText(file,'utf-8');
+}
+
+/* أدوات */
+function g(id){return document.getElementById(id).value}
+function set(id,v){document.getElementById(id).value=v}
+function S(id){return document.getElementById(id)}
+
+/* TradingView */
+function openTV(){
+  const sym = (g('ticker')||'EGX30').toUpperCase().trim();
+  S('tv').innerHTML='';
+  if(window.TradingView){
+    new TradingView.widget({
+      container_id:"tv", autosize:true,
+      symbol: sym.includes(':')? sym : `EGX:${sym}`,
+      interval:"60", timezone:"Africa/Cairo", theme:"dark", style:"1",
+      hide_top_toolbar:false, withdateranges:true, hide_legend:true,
+      hide_volume:false, studies:[], locale:"ar"
+    });
+  }
+}
+
+/* أحداث */
+document.getElementById('btnCalc').addEventListener('click', calc);
+document.getElementById('btnAdd').addEventListener('click', add);
+document.getElementById('btnTV').addEventListener('click', openTV);
+document.getElementById('btnSave').addEventListener('click', saveGH);
+document.getElementById('btnDownload').addEventListener('click', download);
+document.getElementById('fileUp').addEventListener('change', e=> upload(e.target.files[0]));
+
+/* تشغيل */
+loadList(); openTV();
+</script>
+</body>
+</html>
