@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>دليل مصطلحات التداول | Thndr</title>
+
+  <!-- ستايل المشروع -->
+  <link rel="stylesheet" href="../assets/ui.css" />
+
+  <style>
+    :root{
+      --bg:#0b0b0f;--card:#14141b;--soft:#0f1016;--border:#23242c;
+      --txt:#f3f4f6;--muted:#a1a1aa;--acc:#0ea5e9;--good:#22c55e;--bad:#ef4444
+    }
+    body{background:var(--bg);color:var(--txt);font-family:"Cairo",Tahoma,Arial,sans-serif;margin:0}
+    .container{max-width:1100px;margin:24px auto;padding:0 16px}
+    .header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .title{font-size:26px;font-weight:800}
+    .search{display:flex;gap:8px;flex-wrap:wrap}
+    .input{
+      background:var(--soft);border:1px solid var(--border);color:var(--txt);
+      padding:10px 12px;border-radius:12px;min-width:260px;outline:none
+    }
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}
+    .term{font-weight:800;font-size:16px;margin-bottom:6px}
+    .muted{color:var(--muted);font-size:13px}
+    .tag{display:inline-block;background:#12202b;color:#abe3ff;border:1px solid #1e3a5f;border-radius:999px;padding:2px 8px;font-size:12px;margin-inline-start:6px}
+    .pill{display:inline-block;background:#1f2937;color:#e5e7eb;border-radius:999px;padding:2px 8px;font-size:12px;margin-inline-start:6px}
+    .list{display:grid;gap:10px}
+    .kbd{font-family:monospace;background:#0f1016;border:1px solid var(--border);padding:1px 6px;border-radius:6px}
+    .back{display:inline-flex;gap:8px;align-items:center}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">📘 دليل مصطلحات التداول</div>
+      <div class="search">
+        <input id="q" class="input" type="search" placeholder="ابحث عن مصطلح (تعزيز، ارتداد، دعم...)" />
+        <a class="btn" href="../index.html">رجوع للوحة</a>
+      </div>
+    </div>
+
+    <!-- نصيحة سريعة -->
+    <div class="card muted">
+      تلميح: استخدم <span class="kbd">Ctrl</span> + <span class="kbd">F</span> للبحث داخل الصفحة، أو مربع البحث بالأعلى للتصفية الفورية.
+    </div>
+
+    <!-- قائمة المصطلحات -->
+    <div id="terms" class="grid" style="margin-top:12px">
+      <!-- النموذج يُكرر بالـ JS -->
+    </div>
+  </div>
+
+  <script>
+    // بيانات المصطلحات
+    const DATA = [
+      {
+        term: "تعزيز (Averaging Up / Down)",
+        tags: ["إدارة مركز","شراء إضافي"],
+        body: `
+        شراء كميات إضافية من نفس السهم.<br>
+        <b>تعزيز إيجابي:</b> بعد اختراق/تأكيد صعود لمواصلة الاتجاه.<br>
+        <b>تعزيز دفاعي:</b> بعد هبوط مؤقت لخفض متوسط الشراء (يُفضّل بسوق مستقر).`
+      },
+      {
+        term: "ارتداد (Rebound)",
+        tags: ["حركة سعر"],
+        body: `عودة مؤقتة للصعود بعد هبوط. قد يكون ارتدادًا بسيطًا (للبيع السريع) أو بداية موجة صاعدة جديدة.`
+      },
+      {
+        term: "احتفاظ (Hold)",
+        tags: ["إدارة مركز"],
+        body: `الاستمرار بامتلاك السهم دون شراء/بيع إضافي مع بقاء الاتجاه العام إيجابيًا.`
+      },
+      {
+        term: "مراقبة (Watch)",
+        tags: ["قرار مؤجل"],
+        body: `عدم التنفيذ مؤقتًا ومتابعة السهم حتى تظهر إشارة واضحة (اختراق/كسر/تأكيد سيولة).`
+      },
+      {
+        term: "جني أرباح (Take Profit)",
+        tags: ["إدارة أرباح"],
+        body: `بيع جزئي أو كلي عند بلوغ هدف سعري لتأمين الربح قبل تراجع محتمل.`
+      },
+      {
+        term: "وقف خسارة (Stop Loss)",
+        tags: ["حماية رأس المال"],
+        body: `سعر محدد للبيع تلقائيًا لتفادي خسائر أكبر (عادة 5–8% أسفل الشراء أو أسفل دعم رئيسي).`
+      },
+      {
+        term: "دعم (Support)",
+        tags: ["مستوى سعري"],
+        body: `منطقة يُتوقع عندها تباطؤ الهبوط لزيادة الطلب. الارتداد منها يشير لفرصة شراء أو تعزيز.`
+      },
+      {
+        term: "مقاومة (Resistance)",
+        tags: ["مستوى سعري"],
+        body: `منطقة يتباطأ عندها الصعود بسبب البيع. اختراقها بإغلاق قوي يعني استمرار الاتجاه الصاعد.`
+      },
+      {
+        term: "نطاق سعري (Range)",
+        tags: ["تذبذب"],
+        body: `التحرك بين دعم ومقاومة لفترة. غالبًا ما يدل على تجميع قبل اختراق، أو تذبذب يحتاج انضباطًا.`
+      },
+      {
+        term: "تجميع (Accumulation)",
+        tags: ["سلوك مؤسسي"],
+        body: `شراء تدريجي بدون رفع السعر بقوة، يسبق عادة انطلاقة صاعدة. علامته: أحجام تداول منخفضة أثناء الهبوط ثم ارتفاع مفاجئ مع بداية الصعود.`
+      },
+      {
+        term: "تصريف (Distribution)",
+        tags: ["سلوك مؤسسي"],
+        body: `بيع تدريجي أثناء الارتفاع تمهيدًا لهبوط لاحق. علامته: زيادة الأحجام مع ضعف الزخم.`
+      },
+      {
+        term: "تذبذب (Volatility)",
+        tags: ["مخاطرة"],
+        body: `حركة سريعة للأعلى والأسفل في فترات قصيرة. يحتاج إدارة صارمة للمخاطرة وحجم مركز معتدل.`
+      },
+      {
+        term: "سيولة (Liquidity)",
+        tags: ["تنفيذ"],
+        body: `سهولة الدخول والخروج من السهم دون تأثير كبير على السعر. السيولة الأعلى = تنفيذ أفضل.`
+      },
+      {
+        term: "الوزن النسبي في المحفظة (Portfolio Weight)",
+        tags: ["بناء محفظة"],
+        body: `نسبة كل أصل من إجمالي المحفظة. مثال إرشادي: صناديق دفاعية 50–60٪، أسهم 35–45٪، سيولة 10–15٪.`
+      }
+    ];
+
+    const wrap = (t)=>`
+      <div class="card term-card" data-text="${t.term} ${t.tags.join(' ')} ${t.body.replace(/<[^>]*>/g,'')}">
+        <div class="term">${t.term}
+          ${t.tags.map(x=>`<span class="pill">${x}</span>`).join('')}
+        </div>
+        <div class="muted">${t.body}</div>
+      </div>`;
+
+    const root = document.getElementById('terms');
+    root.innerHTML = DATA.map(wrap).join('');
+
+    // بحث فوري
+    const q = document.getElementById('q');
+    q.addEventListener('input', ()=>{
+      const s = q.value.trim().toLowerCase();
+      document.querySelectorAll('.term-card').forEach(card=>{
+        const hay = card.getAttribute('data-text').toLowerCase();
+        card.style.display = hay.includes(s) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
