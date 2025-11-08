@@ -1,52 +1,13 @@
 {
   "as_of": "2025-11-06",
-  "portfolio_value": 8011.25,
-  "day_change": -17.67,
-  "day_change_pct": -0.22,
+  "portfolio_value": 7112.51,
+  "day_change": 42.15,
+  "day_change_pct": 0.60,
+  "cash_egp": 916.36,
   "positions": [
-    {
-      "ticker": "ABR",
-      "name": "صندوق بريق للاستثمار",
-      "units": 8,
-      "avg_price": 180.73,
-      "last": 181.41,
-      "market_value": 1451.25,
-      "pnl": 5.42,
-      "pnl_pct": 0.37,
-      "type": "fund"
-    },
-    {
-      "ticker": "BMM",
-      "name": "صندوق بلتون مية مية",
-      "units": 2608,
-      "avg_price": 1.54,
-      "last": 1.54,
-      "market_value": 4016.66,
-      "pnl": 10.11,
-      "pnl_pct": 0.25,
-      "type": "fund"
-    },
-    {
-      "ticker": "BSB",
-      "name": "صندوق بلتون سبائك",
-      "units": 3,
-      "avg_price": 152.09,
-      "last": 144.83,
-      "market_value": 434.49,
-      "pnl": -21.79,
-      "pnl_pct": -4.78,
-      "type": "fund"
-    },
-    {
-      "ticker": "COMI",
-      "name": "البنك التجاري الدولي",
-      "units": 11,
-      "avg_price": 105.61,
-      "last": 108.50,
-      "market_value": 1194.00,
-      "pnl": 31.78,
-      "pnl_pct": 2.74,
-      "type": "stock"
-    }
+    {"ticker":"COMI","name":"البنك التجاري الدولي","type":"stock","units":11,"avg_price":105.61,"last":109.01,"market_value":1199.11,"pnl":37.40,"pnl_pct":3.22},
+    {"ticker":"BMM","name":"صندوق بلتون مية مية","type":"fund","units":2608,"avg_price":1.54,"last":1.54209,"market_value":4021.77,"pnl":15.22,"pnl_pct":0.38},
+    {"ticker":"ABR","name":"صندوق بريق","type":"fund","units":8,"avg_price":180.73,"last":181.699935,"market_value":1453.59,"pnl":7.77,"pnl_pct":0.54},
+    {"ticker":"BSB","name":"صندوق بلتون سبائك","type":"fund","units":3,"avg_price":152.09,"last":146.01218,"market_value":438.04,"pnl":-18.24,"pnl_pct":-4.00}
   ]
 }
