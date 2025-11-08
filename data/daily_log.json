@@ -31,5 +31,15 @@
       "worst_stock": "BSB",
       "notes": "تم بيع فوري عند 14.77 للسهم، المحفظة مستقرة مع تعزيز محتمل لـ COMI و BMM الأسبوع القادم."
     }
+    {
+  "date": "2025-11-06",
+  "portfolio_value": 7112.51,
+  "day_change": 42.15,
+  "day_change_pct": 0.60,
+  "best_stock": "COMI",
+  "worst_stock": "BSB",
+  "notes": "جلسة ختامية للأسبوع؛ تعزيز COMI على الرادار، BSB تحت المراقبة."
+}
+
   ]
 }
